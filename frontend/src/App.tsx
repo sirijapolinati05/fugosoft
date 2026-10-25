@@ -241,12 +241,6 @@ export default function App() {
   const [bankFilter, setBankFilter] = useState('All Banks');
   const [joiningYearFilter, setJoiningYearFilter] = useState('All Joining Dates');
   const [salaryRangeFilter, setSalaryRangeFilter] = useState('All Salaries');
-  const [divisionFilter, setDivisionFilter] = useState('All Division Heads');
-  const [groupHeadFilter, setGroupHeadFilter] = useState('All Group Heads');
-  const [zoneFilter, setZoneFilter] = useState('All Zones');
-  const [stateFilter, setStateFilter] = useState('All States');
-  const [districtFilter, setDistrictFilter] = useState('All Districts');
-  const [pincodeFilter, setPincodeFilter] = useState('All Pincodes');
 
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
   const [activeFilterAccordion, setActiveFilterAccordion] = useState<string | null>(null);
@@ -258,13 +252,7 @@ export default function App() {
     genderFilter !== 'All Genders' ||
     bankFilter !== 'All Banks' ||
     joiningYearFilter !== 'All Joining Dates' ||
-    salaryRangeFilter !== 'All Salaries' ||
-    divisionFilter !== 'All Division Heads' ||
-    groupHeadFilter !== 'All Group Heads' ||
-    zoneFilter !== 'All Zones' ||
-    stateFilter !== 'All States' ||
-    districtFilter !== 'All Districts' ||
-    pincodeFilter !== 'All Pincodes';
+    salaryRangeFilter !== 'All Salaries';
 
   const resetAllFilters = () => {
     setLocationFilter('All Locations');
@@ -273,12 +261,6 @@ export default function App() {
     setBankFilter('All Banks');
     setJoiningYearFilter('All Joining Dates');
     setSalaryRangeFilter('All Salaries');
-    setDivisionFilter('All Division Heads');
-    setGroupHeadFilter('All Group Heads');
-    setZoneFilter('All Zones');
-    setStateFilter('All States');
-    setDistrictFilter('All Districts');
-    setPincodeFilter('All Pincodes');
     setDepartmentFilter('All Departments');
     setStatusFilter('All Status');
   };
@@ -1141,64 +1123,48 @@ export default function App() {
                           )}
                         </div>
 
-                        {/* Accordion List Matching User Screenshot */}
+                        {/* Accordion List - strictly only fields and data from our website */}
                         <div className="max-h-84 overflow-y-auto divide-y divide-slate-100 py-1">
                           {[
                             {
-                              id: 'division',
-                              label: 'Division Head',
-                              current: divisionFilter,
-                              options: ['All Division Heads', 'Manufacturing Division', 'Operations Division', 'Commercial Division'],
-                              setter: setDivisionFilter
-                            },
-                            {
-                              id: 'groupHead',
-                              label: 'Group Head',
-                              current: groupHeadFilter,
-                              options: ['All Group Heads', 'Amit Verma', 'Rajesh Sharma', 'Pooja Patel'],
-                              setter: setGroupHeadFilter
-                            },
-                            {
                               id: 'location',
-                              label: 'Working Location',
+                              label: 'Work Location',
                               current: locationFilter,
-                              options: ['All Locations', 'Bangalore', 'Plant 1 - Unit A', 'Plant 1 - Unit B', 'Warehouse East', 'Central Facility'],
+                              options: [
+                                'All Locations',
+                                'Bangalore',
+                                'Hyderabad',
+                                'Chennai',
+                                'Mumbai',
+                                'Pune',
+                                'Delhi NCR',
+                                'Kolkata',
+                                'Ahmedabad',
+                                'Visakhapatnam',
+                                'Vijayawada',
+                                'Plant 1 - Unit A',
+                                'Plant 1 - Unit B',
+                                'Warehouse East',
+                                'Central Facility'
+                              ],
                               setter: setLocationFilter
                             },
                             {
-                              id: 'zone',
-                              label: 'Zone',
-                              current: zoneFilter,
-                              options: ['All Zones', 'South Zone', 'North Zone', 'East Zone', 'West Zone'],
-                              setter: setZoneFilter
-                            },
-                            {
-                              id: 'state',
-                              label: 'State',
-                              current: stateFilter,
-                              options: ['All States', 'Karnataka', 'Maharashtra', 'Tamil Nadu', 'Delhi NCR'],
-                              setter: setStateFilter
-                            },
-                            {
-                              id: 'district',
-                              label: 'District',
-                              current: districtFilter,
-                              options: ['All Districts', 'Bengaluru Urban', 'Bengaluru Rural', 'Pune', 'Chennai'],
-                              setter: setDistrictFilter
-                            },
-                            {
-                              id: 'pincode',
-                              label: 'Pincode',
-                              current: pincodeFilter,
-                              options: ['All Pincodes', '560001', '560034', '560068', '560100'],
-                              setter: setPincodeFilter
-                            },
-                            {
-                              id: 'joiningDate',
-                              label: 'Joining Date',
-                              current: joiningYearFilter,
-                              options: ['All Joining Dates', '2026', '2025', '2024'],
-                              setter: setJoiningYearFilter
+                              id: 'role',
+                              label: 'Designation',
+                              current: roleFilter,
+                              options: [
+                                'All Designations',
+                                'Design Engineer',
+                                'Production Specialist',
+                                'Shift Supervisor',
+                                'Plant Operator',
+                                'Quality Inspector',
+                                'Mechanical Technician',
+                                'HR Manager',
+                                'Software Engineer'
+                              ],
+                              setter: setRoleFilter
                             },
                             {
                               id: 'gender',
@@ -1211,12 +1177,19 @@ export default function App() {
                               id: 'bankName',
                               label: 'Bank Name',
                               current: bankFilter,
-                              options: ['All Banks', 'HDFC Bank', 'State Bank of India', 'ICICI Bank', 'Axis Bank'],
+                              options: ['All Banks', 'HDFC Bank', 'State Bank of India', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra Bank', 'Canara Bank'],
                               setter: setBankFilter
                             },
                             {
+                              id: 'joiningDate',
+                              label: 'Joining Date',
+                              current: joiningYearFilter,
+                              options: ['All Joining Dates', '2026', '2025', '2024'],
+                              setter: setJoiningYearFilter
+                            },
+                            {
                               id: 'salary',
-                              label: 'Salary',
+                              label: 'Salary Range',
                               current: salaryRangeFilter,
                               options: ['All Salaries', '< 40,000', '40,000 - 75,000', '> 75,000'],
                               setter: setSalaryRangeFilter
@@ -2485,6 +2458,15 @@ export default function App() {
                         icon={MapPin}
                         options={[
                           { value: 'Bangalore', label: 'Bangalore' },
+                          { value: 'Hyderabad', label: 'Hyderabad' },
+                          { value: 'Chennai', label: 'Chennai' },
+                          { value: 'Mumbai', label: 'Mumbai' },
+                          { value: 'Pune', label: 'Pune' },
+                          { value: 'Delhi NCR', label: 'Delhi NCR' },
+                          { value: 'Kolkata', label: 'Kolkata' },
+                          { value: 'Ahmedabad', label: 'Ahmedabad' },
+                          { value: 'Visakhapatnam', label: 'Visakhapatnam' },
+                          { value: 'Vijayawada', label: 'Vijayawada' },
                           { value: 'Plant 1 - Unit A', label: 'Plant 1 - Unit A' },
                           { value: 'Plant 1 - Unit B', label: 'Plant 1 - Unit B' },
                           { value: 'Warehouse East', label: 'Warehouse East' },
