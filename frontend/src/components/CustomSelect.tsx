@@ -87,7 +87,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       {/* Dropdown Menu (Matches Reference Model exactly with website branding) */}
       {isOpen && (
         <div className="absolute left-0 mt-1.5 w-full min-w-[170px] bg-white border border-slate-200/90 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-          <div className="max-h-60 overflow-y-auto py-1">
+          <div className="max-h-52 overflow-y-auto overflow-x-hidden py-1 divide-y divide-slate-50 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent]">
             {options.map((option, idx) => {
               const isSelected = option.value === value;
               const isFirst = idx === 0;
