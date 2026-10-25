@@ -504,8 +504,15 @@ def request_password_reset_otp(data: UserRequestOTP, db: Session = Depends(get_d
 
     email_sent = send_otp_email(user.email, user.full_name, otp_code)
     
-    # Also return demo_otp in response header/body if SMTP is not configured so user is never blocked
+    # Check if SMTP is configured
     smtp_configured = bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
+
+    if smtp_configured and not email_sent:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send verification email via SMTP server. Please verify your SMTP settings or check your spam folder."
+        )
+
     return {
         "message": f"A 6-digit verification code has been sent to {user.email}.",
         "email": user.email,
