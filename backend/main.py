@@ -468,8 +468,12 @@ def send_otp_email(recipient_email: str, recipient_name: str, otp_code: str) -> 
             import json
 
             from_sender = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev").strip()
+            # If default test domain, use onboarding@resend.dev directly
+            sender_field = from_sender if "@" in from_sender else f"Manufac Industries <{from_sender}>"
+            if from_sender == "onboarding@resend.dev":
+                sender_field = "onboarding@resend.dev"
             payload = {
-                "from": f"Manufac Industries <{from_sender}>",
+                "from": sender_field,
                 "to": [recipient_email],
                 "subject": f"Your Password Reset Code: {otp_code} - Manufac Industries",
                 "html": html_content
@@ -479,7 +483,8 @@ def send_otp_email(recipient_email: str, recipient_name: str, otp_code: str) -> 
                 data=json.dumps(payload).encode("utf-8"),
                 headers={
                     "Authorization": f"Bearer {resend_api_key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "User-Agent": "FugoSoft-App/1.0"
                 }
             )
             with urllib.request.urlopen(req, timeout=12) as response:
