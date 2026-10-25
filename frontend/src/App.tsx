@@ -1405,31 +1405,38 @@ export default function App() {
                   <span className="text-xs font-semibold text-slate-800 leading-tight">
                     {currentUser?.fullName || 'User Name'}
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal leading-none">
-                    {currentUser?.role || 'Admin'}
-                  </span>
                 </div>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
               </div>
 
               {/* User dropdown popup menu */}
               {showUserDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-2 border-b border-slate-100">
-                    <p className="text-xs font-bold text-slate-900 truncate">{currentUser?.fullName || 'HR Manager'}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{currentUser?.email || 'admin@fugosoft.com'}</p>
+                <>
+                  {/* Backdrop overlay to close dropdown when clicking or touching anywhere on the screen */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowUserDropdown(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="px-3 py-2 border-b border-slate-100">
+                      <p className="text-xs font-bold text-slate-900 truncate">{currentUser?.fullName || 'User Name'}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{currentUser?.email || 'admin@fugosoft.com'}</p>
+                    </div>
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowUserDropdown(false);
+                          handleLogout();
+                        }}
+                        className="w-full px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-semibold transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Log Out</span>
+                      </button>
+                    </div>
                   </div>
-                  <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="w-full px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-semibold transition-colors cursor-pointer"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>Log Out</span>
-                    </button>
-                  </div>
-                </div>
+                </>
               )}
             </div>
           </div>
