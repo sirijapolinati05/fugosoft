@@ -27,16 +27,25 @@ FugoSoft/
 └── README.md
 ```
 
-## Running the Project
-
-### 1. Backend (FastAPI + PostgreSQL)
+### 1. Database Setup & Migration
+1. Copy `backend/.env.example` to `backend/.env` and update your PostgreSQL credentials:
+```bash
+cp backend/.env.example backend/.env
+```
+2. Run the database migration script to automatically create/verify tables and columns:
 ```bash
 cd backend
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+python migrate.py
+```
+
+### 2. Backend (FastAPI + PostgreSQL)
+```bash
+cd backend
+python main.py
 ```
 API Documentation will be available at: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
-### 2. Frontend (React + Vite)
+### 3. Frontend (React + Vite)
 ```bash
 cd frontend
 npm install
