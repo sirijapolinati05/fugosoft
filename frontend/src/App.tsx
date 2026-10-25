@@ -963,28 +963,28 @@ export default function App() {
   // If user is not authenticated, show modern Authentication (Login / Signup) Page
   if (!currentUser) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-[#0e243a] via-[#1a334e] to-[#254668] flex items-center justify-center p-4 sm:p-6 select-none">
-        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div className="h-screen w-full bg-gradient-to-br from-[#0e243a] via-[#1a334e] to-[#254668] flex items-center justify-center p-3 sm:p-6 select-none overflow-hidden">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl sm:rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[96vh]">
           {/* Header branding */}
-          <div className="bg-[#1a334e] p-7 text-center relative overflow-hidden">
+          <div className="bg-[#1a334e] px-5 py-4 sm:p-7 text-center relative overflow-hidden shrink-0">
             <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#e45809]/20 rounded-full blur-2xl pointer-events-none" />
-            <div className="inline-flex items-center justify-center gap-2 mb-3">
-              <svg className="w-9 h-9 text-white" viewBox="0 0 36 36" fill="currentColor">
+            <div className="inline-flex items-center justify-center gap-2 mb-2 sm:mb-3">
+              <svg className="w-7 h-7 sm:w-9 sm:h-9 text-white" viewBox="0 0 36 36" fill="currentColor">
                 <path d="M4 27V15l6 3v-6l6 3.5V8l8 5v14H4z" fill="white" />
                 <rect x="18" y="4" width="2.5" height="3" rx="0.5" fill="#f26522" />
                 <rect x="11" y="9" width="2.5" height="3" rx="0.5" fill="#f26522" />
                 <circle cx="10" cy="24" r="5" fill="#f26522" />
               </svg>
               <div className="text-left">
-                <span className="block font-black text-lg tracking-tight text-white leading-none">
+                <span className="block font-black text-base sm:text-lg tracking-tight text-white leading-none">
                   MANUFAC
                 </span>
-                <span className="block text-[9px] font-bold text-orange-400 tracking-[0.2em] leading-tight">
+                <span className="block text-[8px] sm:text-[9px] font-bold text-orange-400 tracking-[0.2em] leading-tight">
                   INDUSTRIES
                 </span>
               </div>
             </div>
-            <h2 className="text-xl font-black text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
               {authMode === 'login'
                 ? 'Welcome Back'
                 : authMode === 'signup'
@@ -995,7 +995,7 @@ export default function App() {
                 ? 'Verify 6-Digit Code'
                 : 'Set New Password'}
             </h2>
-            <p className="text-xs text-slate-300 mt-1">
+            <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 sm:mt-1">
               {authMode === 'login'
                 ? 'Sign in to access Employee & HR Management Portal'
                 : authMode === 'signup'
@@ -1009,7 +1009,7 @@ export default function App() {
           </div>
 
           {/* Form container */}
-          <div className="p-7">
+          <div className="p-4 sm:p-7 overflow-y-auto">
             {authError && (
               <div className="mb-4 px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-150">
                 <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
@@ -1320,7 +1320,7 @@ export default function App() {
               </form>
             )}
 
-            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+            <div className="mt-4 pt-3.5 sm:mt-6 sm:pt-5 border-t border-slate-100 text-center">
               {authMode === 'forgot' ? (
                 <p className="text-xs text-slate-500">
                   Remember your password?
