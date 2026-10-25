@@ -99,6 +99,18 @@ export default function App() {
   }>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [toast, setToast] = useState<{ id: number; message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => Promise<void> | void;
+    isDeleting?: boolean;
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {}
+  });
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Date.now();
@@ -396,37 +408,46 @@ export default function App() {
     }
   };
 
-  const handleBulkDelete = async () => {
+  const handleBulkDelete = () => {
     if (selectedLeaves.length === 0) return;
-    const confirmMsg =
-      selectedLeaves.length === 1
-        ? `Are you sure you want to delete employee ${selectedLeaves[0]}?`
-        : `Are you sure you want to delete ${selectedLeaves.length} selected employees?`;
-    if (!confirm(confirmMsg)) return;
+    const isSingle = selectedLeaves.length === 1;
+    const desc = isSingle
+      ? `Are you sure you want to delete employee ${selectedLeaves[0]}? This action cannot be undone.`
+      : `Are you sure you want to delete ${selectedLeaves.length} selected employees? This action cannot be undone.`;
 
-    try {
-      const res = await fetch('/api/employees/bulk-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employee_ids: selectedLeaves })
-      });
+    setDeleteModal({
+      isOpen: true,
+      title: isSingle ? 'Delete Employee' : `Delete ${selectedLeaves.length} Employees`,
+      description: desc,
+      onConfirm: async () => {
+        setDeleteModal(prev => ({ ...prev, isDeleting: true }));
+        try {
+          const res = await fetch('/api/employees/bulk-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ employee_ids: selectedLeaves })
+          });
 
-      if (res.ok) {
-        const data = await res.json();
-        showToast(data.message || `${selectedLeaves.length} employee(s) deleted successfully!`, 'success');
-        if (selectedEmployee && selectedLeaves.includes(selectedEmployee.id)) {
-          setSelectedEmployee(null);
+          if (res.ok) {
+            const data = await res.json();
+            showToast(data.message || `${selectedLeaves.length} employee(s) deleted successfully!`, 'success');
+            if (selectedEmployee && selectedLeaves.includes(selectedEmployee.id)) {
+              setSelectedEmployee(null);
+            }
+            setSelectedLeaves([]);
+            await fetchEmployees();
+            await fetchStats();
+          } else {
+            showToast('Failed to delete selected employees', 'error');
+          }
+        } catch (err) {
+          console.error('Bulk delete error:', err);
+          showToast('Failed to connect to backend for bulk deletion', 'error');
+        } finally {
+          setDeleteModal(prev => ({ ...prev, isOpen: false, isDeleting: false }));
         }
-        setSelectedLeaves([]);
-        await fetchEmployees();
-        await fetchStats();
-      } else {
-        showToast('Failed to delete selected employees', 'error');
       }
-    } catch (err) {
-      console.error('Bulk delete error:', err);
-      showToast('Failed to connect to backend for bulk deletion', 'error');
-    }
+    });
   };
 
   // Fetch employees from FastAPI backend
@@ -1509,22 +1530,34 @@ export default function App() {
 
                                       {/* Delete Symbol */}
                                       <button
-                                        onClick={async () => {
+                                        onClick={() => {
                                           setActiveActionId(null);
-                                          if (confirm(`Are you sure you want to delete employee ${row.name} (${row.id})?`)) {
-                                            try {
-                                              const res = await fetch(`/api/employees/${row.id}`, { method: 'DELETE' });
-                                              if (res.ok) {
-                                                showToast(`Employee ${row.name} deleted successfully!`, 'success');
-                                                fetchEmployees();
-                                              } else {
-                                                showToast('Failed to delete employee', 'error');
+                                          setDeleteModal({
+                                            isOpen: true,
+                                            title: 'Delete Employee',
+                                            description: `Are you sure you want to delete employee ${row.name} (${row.id})? This action cannot be undone.`,
+                                            onConfirm: async () => {
+                                              setDeleteModal(prev => ({ ...prev, isDeleting: true }));
+                                              try {
+                                                const res = await fetch(`/api/employees/${row.id}`, { method: 'DELETE' });
+                                                if (res.ok) {
+                                                  showToast(`Employee ${row.name} deleted successfully!`, 'success');
+                                                  if (selectedEmployee && selectedEmployee.id === row.id) {
+                                                    setSelectedEmployee(null);
+                                                  }
+                                                  fetchEmployees();
+                                                  fetchStats();
+                                                } else {
+                                                  showToast('Failed to delete employee', 'error');
+                                                }
+                                              } catch (err) {
+                                                console.error('Delete error:', err);
+                                                showToast('Could not connect to backend to delete employee', 'error');
+                                              } finally {
+                                                setDeleteModal(prev => ({ ...prev, isOpen: false, isDeleting: false }));
                                               }
-                                            } catch (err) {
-                                              console.error('Delete error:', err);
-                                              showToast('Could not connect to backend to delete employee', 'error');
                                             }
-                                          }
+                                          });
                                         }}
                                         title="Delete Employee"
                                         className="p-1.5 rounded-md text-rose-600 hover:text-rose-700 bg-rose-50/70 hover:bg-rose-100 transition-colors cursor-pointer"
@@ -1630,22 +1663,31 @@ export default function App() {
 
                     {/* Delete Button */}
                     <button
-                      onClick={async () => {
-                        if (confirm(`Are you sure you want to delete employee ${selectedEmployee.name} (${selectedEmployee.id})?`)) {
-                          try {
-                            const res = await fetch(`/api/employees/${selectedEmployee.id}`, { method: 'DELETE' });
-                            if (res.ok) {
-                              showToast(`Employee ${selectedEmployee.name} deleted successfully!`, 'success');
-                              setSelectedEmployee(null);
-                              fetchEmployees();
-                            } else {
-                              showToast('Failed to delete employee', 'error');
+                      onClick={() => {
+                        setDeleteModal({
+                          isOpen: true,
+                          title: 'Delete Employee',
+                          description: `Are you sure you want to delete employee ${selectedEmployee.name} (${selectedEmployee.id})? This action cannot be undone.`,
+                          onConfirm: async () => {
+                            setDeleteModal(prev => ({ ...prev, isDeleting: true }));
+                            try {
+                              const res = await fetch(`/api/employees/${selectedEmployee.id}`, { method: 'DELETE' });
+                              if (res.ok) {
+                                showToast(`Employee ${selectedEmployee.name} deleted successfully!`, 'success');
+                                setSelectedEmployee(null);
+                                fetchEmployees();
+                                fetchStats();
+                              } else {
+                                showToast('Failed to delete employee', 'error');
+                              }
+                            } catch (err) {
+                              console.error('Delete error:', err);
+                              showToast('Could not connect to backend to delete employee', 'error');
+                            } finally {
+                              setDeleteModal(prev => ({ ...prev, isOpen: false, isDeleting: false }));
                             }
-                          } catch (err) {
-                            console.error('Delete error:', err);
-                            showToast('Could not connect to backend to delete employee', 'error');
                           }
-                        }
+                        });
                       }}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white text-rose-600 hover:bg-rose-50 text-[11px] font-semibold transition-colors cursor-pointer shadow-2xs"
                     >
@@ -3841,6 +3883,87 @@ export default function App() {
             >
               <X className="w-3.5 h-3.5" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DELETE MODAL POPUP (Replaces browser window.confirm top alert) */}
+      {deleteModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop blur & dark overlay */}
+          <div
+            onClick={() => {
+              if (!deleteModal.isDeleting) {
+                setDeleteModal(prev => ({ ...prev, isOpen: false }));
+              }
+            }}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+          />
+
+          {/* Modal Dialog Card */}
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-10 animate-in zoom-in-95 duration-200">
+            {/* Top decorative stripe */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-rose-500 via-red-500 to-rose-600" />
+
+            <div className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0 shadow-sm text-rose-600">
+                  <Trash2 className="w-6 h-6 stroke-[2]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-bold text-slate-900 tracking-tight">
+                    {deleteModal.title}
+                  </h3>
+                  <p className="mt-1.5 text-xs text-slate-500 leading-relaxed font-normal">
+                    {deleteModal.description}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={deleteModal.isDeleting}
+                  onClick={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
+                  className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Warning note */}
+              <div className="mt-4 px-3 py-2 rounded-xl bg-amber-50/80 border border-amber-200/60 flex items-center gap-2 text-[11px] text-amber-800 font-medium">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>This record will be permanently deleted from database.</span>
+              </div>
+
+              {/* Action buttons */}
+              <div className="mt-6 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  disabled={deleteModal.isDeleting}
+                  onClick={() => setDeleteModal(prev => ({ ...prev, isOpen: false }))}
+                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-semibold transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={deleteModal.isDeleting}
+                  onClick={() => deleteModal.onConfirm()}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-all shadow-md shadow-rose-600/25 active:scale-95 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {deleteModal.isDeleting ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
+                      <span>Yes, Delete</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
