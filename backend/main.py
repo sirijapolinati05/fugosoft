@@ -34,8 +34,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 def hash_password(password: str) -> str:
-    # PBKDF2 HMAC SHA-256 password hashing
-    salt = "fugosoft_salt_key_2026"
+    # PBKDF2 HMAC SHA-256 password hashing with environment-configurable secret salt
+    salt = os.getenv("SECRET_SALT", "fugosoft_salt_key_2026")
     return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000).hex()
 
 def validate_strong_password(password: str) -> None:
