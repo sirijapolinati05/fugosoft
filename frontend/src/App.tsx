@@ -17,7 +17,6 @@ import {
   Check,
   Upload,
   Pencil,
-  FileCheck2,
   Clock,
   UserCheck,
   Filter,
@@ -3333,120 +3332,90 @@ export default function App() {
                       </div>
 
                       <div className="space-y-2.5 text-xs">
-                        {/* Aadhaar */}
+                        {/* Helper function to view document in new tab */}
                         {(() => {
-                          const hasDoc = Boolean(documents.aadhaar || viewDocUrls.aadhaar);
-                          const docName = documents.aadhaar ? documents.aadhaar.name : (viewDocUrls.aadhaar ? viewDocUrls.aadhaar.split('/').pop() : 'No file chosen');
-                          return (
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-slate-500" />
-                                <span className="text-slate-700 font-semibold text-[11.5px]">Aadhaar Card</span>
-                              </div>
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-slate-500 text-[11px] truncate max-w-[120px]">
-                                  {docName}
-                                </span>
-                                {hasDoc ? (
-                                  <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
-                                    <FileCheck2 className="w-3 h-3 text-emerald-600" />
-                                    Attached
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 shrink-0">
-                                    Not uploaded
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })()}
+                          const openDocInNewTab = (fileObj: File | null, fileUrl: string | null | undefined) => {
+                            if (fileObj) {
+                              const blobUrl = URL.createObjectURL(fileObj);
+                              window.open(blobUrl, '_blank', 'noopener,noreferrer');
+                              return;
+                            }
+                            if (fileUrl) {
+                              const fullUrl = fileUrl.startsWith('http') || fileUrl.startsWith('/')
+                                ? fileUrl
+                                : `/api/documents/view/${fileUrl}`;
+                              window.open(fullUrl, '_blank', 'noopener,noreferrer');
+                            }
+                          };
 
-                        {/* PAN Card */}
-                        {(() => {
-                          const hasDoc = Boolean(documents.pan || viewDocUrls.pan);
-                          const docName = documents.pan ? documents.pan.name : (viewDocUrls.pan ? viewDocUrls.pan.split('/').pop() : 'No file chosen');
-                          return (
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-slate-500" />
-                                <span className="text-slate-700 font-semibold text-[11.5px]">PAN Card</span>
-                              </div>
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-slate-500 text-[11px] truncate max-w-[120px]">
-                                  {docName}
-                                </span>
-                                {hasDoc ? (
-                                  <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
-                                    <FileCheck2 className="w-3 h-3 text-emerald-600" />
-                                    Attached
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 shrink-0">
-                                    Not uploaded
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })()}
+                          const docItems = [
+                            {
+                              label: 'Aadhaar Card',
+                              fileObj: documents.aadhaar,
+                              fileUrl: viewDocUrls.aadhaar,
+                              required: true
+                            },
+                            {
+                              label: 'PAN Card',
+                              fileObj: documents.pan,
+                              fileUrl: viewDocUrls.pan,
+                              required: true
+                            },
+                            {
+                              label: 'Experience Letter',
+                              fileObj: documents.experience,
+                              fileUrl: viewDocUrls.experience,
+                              required: false
+                            },
+                            {
+                              label: 'Education Proof',
+                              fileObj: documents.education,
+                              fileUrl: viewDocUrls.education,
+                              required: false
+                            }
+                          ];
 
-                        {/* Experience Letter */}
-                        {(() => {
-                          const hasDoc = Boolean(documents.experience || viewDocUrls.experience);
-                          const docName = documents.experience ? documents.experience.name : (viewDocUrls.experience ? viewDocUrls.experience.split('/').pop() : 'No file chosen');
-                          return (
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-slate-500" />
-                                <span className="text-slate-700 font-semibold text-[11.5px]">Experience Letter</span>
-                              </div>
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-slate-500 text-[11px] truncate max-w-[120px]">
-                                  {docName}
-                                </span>
-                                {hasDoc ? (
-                                  <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
-                                    <FileCheck2 className="w-3 h-3 text-emerald-600" />
-                                    Attached
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 shrink-0">
-                                    Optional
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })()}
+                          return docItems.map((item, idx) => {
+                            const hasDoc = Boolean(item.fileObj || item.fileUrl);
+                            const docName = item.fileObj
+                              ? item.fileObj.name
+                              : item.fileUrl
+                              ? item.fileUrl.split('/').pop()
+                              : 'No file chosen';
 
-                        {/* Education Document */}
-                        {(() => {
-                          const hasDoc = Boolean(documents.education || viewDocUrls.education);
-                          const docName = documents.education ? documents.education.name : (viewDocUrls.education ? viewDocUrls.education.split('/').pop() : 'No file chosen');
-                          return (
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-slate-500" />
-                                <span className="text-slate-700 font-semibold text-[11.5px]">Education Proof</span>
-                              </div>
-                              <div className="flex items-center gap-2.5">
-                                <span className="text-slate-500 text-[11px] truncate max-w-[120px]">
-                                  {docName}
-                                </span>
-                                {hasDoc ? (
-                                  <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shrink-0">
-                                    <FileCheck2 className="w-3 h-3 text-emerald-600" />
-                                    Attached
+                            return (
+                              <div key={idx} className="flex items-center justify-between py-1 border-b border-slate-50 last:border-b-0">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                  <span className="text-slate-700 font-semibold text-[11.5px]">{item.label}</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-slate-500 text-[11px] truncate max-w-[120px] sm:max-w-[150px]">
+                                    {docName}
                                   </span>
-                                ) : (
-                                  <span className="inline-flex items-center text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 shrink-0">
-                                    Optional
-                                  </span>
-                                )}
+                                  {hasDoc ? (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        openDocInNewTab(item.fileObj, item.fileUrl);
+                                      }}
+                                      className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#e45809] bg-orange-50 hover:bg-orange-100 hover:text-[#cf4d05] px-3 py-1 rounded-lg border border-orange-200/80 shrink-0 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                      title={`View ${item.label} in new browser tab`}
+                                    >
+                                      <span>View</span>
+                                      <ExternalLink className="w-3 h-3 stroke-[2.2]" />
+                                    </button>
+                                  ) : (
+                                    <span className="inline-flex items-center text-[10px] font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 shrink-0">
+                                      {item.required ? 'Not uploaded' : 'Optional'}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          );
+                            );
+                          });
                         })()}
                       </div>
                     </div>

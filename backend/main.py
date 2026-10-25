@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -273,6 +274,60 @@ async def update_employee_avatar(emp_id: str, file: UploadFile = File(...), db: 
     db.commit()
     db.refresh(employee)
     return {"message": "Avatar updated successfully", "avatar_url": avatar_url}
+
+@app.get("/api/documents/view/{filename}")
+def view_document_by_filename(filename: str):
+    """
+    Secure document viewer endpoint that opens files inline in browser.
+    """
+    clean_filename = os.path.basename(filename)
+    file_path = os.path.join(UPLOAD_DIR, clean_filename)
+
+    if os.path.exists(file_path):
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(file_path)
+        return FileResponse(
+            file_path,
+            media_type=mime_type or "application/pdf",
+            headers={"Content-Disposition": f"inline; filename={clean_filename}"}
+        )
+
+    # If S3 / cloud storage is configured, redirect to cloud storage URL
+    from storage import AWS_ENDPOINT_URL_S3, S3_BUCKET_NAME
+    if AWS_ENDPOINT_URL_S3 and S3_BUCKET_NAME:
+        endpoint = AWS_ENDPOINT_URL_S3.rstrip("/")
+        cloud_url = f"{endpoint}/{S3_BUCKET_NAME}/{clean_filename}"
+        return RedirectResponse(url=cloud_url)
+
+    raise HTTPException(status_code=404, detail="Requested document not found.")
+
+@app.get("/api/employees/{emp_id}/documents/{doc_type}")
+def view_employee_document(emp_id: str, doc_type: str, db: Session = Depends(get_db)):
+    """
+    Directly opens the employee's document (aadhaar, pan, experience, education) in a new browser tab.
+    """
+    employee = db.query(EmployeeModel).filter(EmployeeModel.employee_id == emp_id).first()
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    doc_field_map = {
+        "aadhaar": employee.aadhaar_file,
+        "pan": employee.pan_file,
+        "experience": employee.experience_file,
+        "education": employee.education_file
+    }
+
+    doc_val = doc_field_map.get(doc_type.lower())
+    if not doc_val:
+        raise HTTPException(status_code=404, detail=f"No {doc_type} document uploaded for this employee.")
+
+    # If already a full URL
+    if doc_val.startswith("http://") or doc_val.startswith("https://"):
+        return RedirectResponse(url=doc_val)
+
+    # If local path or filename
+    filename = os.path.basename(doc_val)
+    return view_document_by_filename(filename)
 
 if __name__ == "__main__":
     import uvicorn
