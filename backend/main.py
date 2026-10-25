@@ -458,6 +458,68 @@ def send_otp_email(recipient_email: str, recipient_name: str, otp_code: str) -> 
     </html>
     """
 
+    resend_api_key = os.getenv("RESEND_API_KEY", "").strip()
+    brevo_api_key = os.getenv("BREVO_API_KEY", "").strip()
+
+    # Strategy 0: If RESEND_API_KEY is provided, send via Resend HTTP REST API (Render-friendly on port 443)
+    if resend_api_key:
+        try:
+            import urllib.request
+            import json
+
+            from_sender = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev").strip()
+            payload = {
+                "from": f"Manufac Industries <{from_sender}>",
+                "to": [recipient_email],
+                "subject": f"Your Password Reset Code: {otp_code} - Manufac Industries",
+                "html": html_content
+            }
+            req = urllib.request.Request(
+                "https://api.resend.com/emails",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "Authorization": f"Bearer {resend_api_key}",
+                    "Content-Type": "application/json"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=12) as response:
+                if response.status in (200, 201):
+                    print(f"[Resend API] Reset OTP sent successfully to {recipient_email}")
+                    return (True, None)
+        except Exception as resend_err:
+            print(f"[Resend API ERROR] {resend_err}")
+            # If Resend failed, continue to fallback methods
+
+    # Strategy 0B: If BREVO_API_KEY is provided, send via Brevo HTTP REST API (Render-friendly on port 443)
+    if brevo_api_key:
+        try:
+            import urllib.request
+            import json
+
+            brevo_from_email = os.getenv("BREVO_FROM_EMAIL", smtp_from).strip()
+            brevo_from_name = os.getenv("BREVO_FROM_NAME", "Manufac Support").strip()
+            payload = {
+                "sender": {"name": brevo_from_name, "email": brevo_from_email},
+                "to": [{"email": recipient_email, "name": recipient_name}],
+                "subject": f"Your Password Reset Code: {otp_code} - Manufac Industries",
+                "htmlContent": html_content
+            }
+            req = urllib.request.Request(
+                "https://api.brevo.com/v3/smtp/email",
+                data=json.dumps(payload).encode("utf-8"),
+                headers={
+                    "api-key": brevo_api_key,
+                    "Content-Type": "application/json",
+                    "accept": "application/json"
+                }
+            )
+            with urllib.request.urlopen(req, timeout=12) as response:
+                if response.status in (200, 201):
+                    print(f"[Brevo API] Reset OTP sent successfully to {recipient_email}")
+                    return (True, None)
+        except Exception as brevo_err:
+            print(f"[Brevo API ERROR] {brevo_err}")
+
     clean_user = smtp_user.strip()
     clean_password = smtp_password.replace(" ", "").strip()
     clean_from = smtp_from.strip()
@@ -531,18 +593,22 @@ def request_password_reset_otp(data: UserRequestOTP, db: Session = Depends(get_d
 
     email_sent, smtp_err = send_otp_email(user.email, user.full_name, otp_code)
     
-    # Check if SMTP is configured
-    smtp_configured = bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
+    # Check if email service is configured (Resend, Brevo, or SMTP)
+    is_configured = bool(
+        os.getenv("RESEND_API_KEY") or
+        os.getenv("BREVO_API_KEY") or
+        (os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
+    )
 
-    if smtp_configured and not email_sent:
-        error_detail = f"SMTP Delivery Error: {smtp_err}" if smtp_err else "Failed to send email via SMTP server."
+    if is_configured and not email_sent:
+        error_detail = f"Email Delivery Error: {smtp_err}" if smtp_err else "Failed to send verification email."
         raise HTTPException(status_code=500, detail=error_detail)
 
     return {
         "message": f"A 6-digit verification code has been sent to {user.email}.",
         "email": user.email,
-        "smtp_configured": smtp_configured,
-        "dev_code": None if smtp_configured else otp_code
+        "smtp_configured": is_configured,
+        "dev_code": None if is_configured else otp_code
     }
 
 @app.post("/api/auth/forgot-password/verify-otp")
