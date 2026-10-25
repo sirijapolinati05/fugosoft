@@ -384,6 +384,7 @@ export default function App() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [stats, setStats] = useState({ total_staff: 0, active_count: 0, new_joiners: 0, active_percentage: 100 });
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -3594,104 +3595,109 @@ export default function App() {
                       </button>
                       <button
                         type="button"
+                        disabled={isSubmitting}
                         onClick={async () => {
-                          if (!basicDetails.firstName || !basicDetails.lastName || !basicDetails.emailAddress) {
+                          if (isSubmitting) return;
+
+                          if (!basicDetails.firstName?.trim() || !basicDetails.lastName?.trim() || !basicDetails.emailAddress?.trim()) {
                             alert('Please fill in required fields (First Name, Last Name, Email).');
                             return;
                           }
 
-                          // Upload avatar & document files
-                          let uploadedAvatarUrl: string | undefined = undefined;
-                          let aadhaarUrl: string | undefined = undefined;
-                          let panUrl: string | undefined = undefined;
-                          let expUrl: string | undefined = undefined;
-                          let eduUrl: string | undefined = undefined;
-
-                          const uploadFile = async (f: File | null) => {
-                            if (!f) return null;
-                            const fd = new FormData();
-                            fd.append('file', f);
-                            try {
-                              const res = await fetch('/api/upload', { method: 'POST', body: fd });
-                              if (res.ok) {
-                                const data = await res.json();
-                                return data.url;
-                              }
-                            } catch (e) {
-                              console.error('File upload error:', e);
-                            }
-                            return null;
-                          };
-
-                          if (avatarFile) {
-                            setAvatarUploading(true);
-                            uploadedAvatarUrl = (await uploadFile(avatarFile)) || undefined;
-                            setAvatarUploading(false);
-                          }
-
-                          const [aadhaarRes, panRes, expRes, eduRes] = await Promise.all([
-                            uploadFile(documents.aadhaar),
-                            uploadFile(documents.pan),
-                            uploadFile(documents.experience),
-                            uploadFile(documents.education)
-                          ]);
-                          aadhaarUrl = aadhaarRes || undefined;
-                          panUrl = panRes || undefined;
-                          expUrl = expRes || undefined;
-                          eduUrl = eduRes || undefined;
-
-                          const payload = {
-                            employee_id: jobDetails.employeeId === 'Auto-generated' || !jobDetails.employeeId ? null : jobDetails.employeeId,
-                            first_name: basicDetails.firstName,
-                            last_name: basicDetails.lastName,
-                            avatar_url: uploadedAvatarUrl || null,
-                            date_of_birth: basicDetails.dateOfBirth || null,
-                            gender: basicDetails.gender || null,
-                            email: basicDetails.emailAddress,
-                            phone: basicDetails.phoneNumber || 'N/A',
-                            
-                            department: jobDetails.department || 'Operations',
-                            designation: jobDetails.designation || 'Specialist',
-                            employment_type: jobDetails.employmentType || 'Full Time',
-                            joining_date: jobDetails.joiningDate || new Date().toISOString().split('T')[0],
-                            reporting_manager: jobDetails.reportingManager || null,
-                            work_location: jobDetails.workLocation || 'Bangalore',
-                            
-                            monthly_salary: salaryDetails.monthlySalary || null,
-                            pay_frequency: salaryDetails.payFrequency || 'Monthly',
-                            pf_eligibility: salaryDetails.pfEligibility || 'Yes',
-                            uan_number: salaryDetails.uanNumber || null,
-                            esi_eligibility: salaryDetails.esiEligibility || 'Yes',
-                            esi_number: salaryDetails.esiNumber || null,
-                            basic_salary: salaryDetails.basicSalary || null,
-                            hra: salaryDetails.hra || null,
-                            special_allowance: salaryDetails.specialAllowance || null,
-                            other_allowances: salaryDetails.otherAllowances || null,
-                            
-                            account_holder_name: bankDetails.accountHolderName || null,
-                            account_number: bankDetails.bankAccountNumber || null,
-                            ifsc_code: bankDetails.ifscCode || null,
-                            bank_name: bankDetails.bankName || null,
-                            branch_name: bankDetails.branchName || null,
-                            
-                            aadhaar_file: aadhaarUrl || documents.aadhaar?.name || null,
-                            pan_file: panUrl || documents.pan?.name || null,
-                            experience_file: expUrl || documents.experience?.name || null,
-                            education_file: eduUrl || documents.education?.name || null,
-                            status: 'Active'
-                          };
+                          setIsSubmitting(true);
 
                           try {
+                            // Upload avatar & document files safely
+                            let uploadedAvatarUrl: string | undefined = undefined;
+                            let aadhaarUrl: string | undefined = undefined;
+                            let panUrl: string | undefined = undefined;
+                            let expUrl: string | undefined = undefined;
+                            let eduUrl: string | undefined = undefined;
+
+                            const uploadFile = async (f: File | null) => {
+                              if (!f) return null;
+                              const fd = new FormData();
+                              fd.append('file', f);
+                              try {
+                                const res = await fetch('/api/upload', { method: 'POST', body: fd });
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  return data.url;
+                                }
+                              } catch (e) {
+                                console.warn('Document upload warning, saving filename locally:', e);
+                              }
+                              return null;
+                            };
+
+                            if (avatarFile) {
+                              setAvatarUploading(true);
+                              uploadedAvatarUrl = (await uploadFile(avatarFile)) || undefined;
+                              setAvatarUploading(false);
+                            }
+
+                            const [aadhaarRes, panRes, expRes, eduRes] = await Promise.all([
+                              uploadFile(documents.aadhaar),
+                              uploadFile(documents.pan),
+                              uploadFile(documents.experience),
+                              uploadFile(documents.education)
+                            ]);
+                            aadhaarUrl = aadhaarRes || undefined;
+                            panUrl = panRes || undefined;
+                            expUrl = expRes || undefined;
+                            eduUrl = eduRes || undefined;
+
+                            const payload = {
+                              employee_id: jobDetails.employeeId === 'Auto-generated' || !jobDetails.employeeId ? null : jobDetails.employeeId,
+                              first_name: basicDetails.firstName.trim(),
+                              last_name: basicDetails.lastName.trim(),
+                              avatar_url: uploadedAvatarUrl || null,
+                              date_of_birth: basicDetails.dateOfBirth || null,
+                              gender: basicDetails.gender || null,
+                              email: basicDetails.emailAddress.trim(),
+                              phone: basicDetails.phoneNumber?.trim() || 'N/A',
+                              
+                              department: jobDetails.department || 'Operations',
+                              designation: jobDetails.designation || 'Specialist',
+                              employment_type: jobDetails.employmentType || 'Full Time',
+                              joining_date: jobDetails.joiningDate || new Date().toISOString().split('T')[0],
+                              reporting_manager: jobDetails.reportingManager || null,
+                              work_location: jobDetails.workLocation || 'Bangalore',
+                              
+                              monthly_salary: salaryDetails.monthlySalary || null,
+                              pay_frequency: salaryDetails.payFrequency || 'Monthly',
+                              pf_eligibility: salaryDetails.pfEligibility || 'Yes',
+                              uan_number: salaryDetails.uanNumber || null,
+                              esi_eligibility: salaryDetails.esiEligibility || 'Yes',
+                              esi_number: salaryDetails.esiNumber || null,
+                              basic_salary: salaryDetails.basicSalary || null,
+                              hra: salaryDetails.hra || null,
+                              special_allowance: salaryDetails.specialAllowance || null,
+                              other_allowances: salaryDetails.otherAllowances || null,
+                              
+                              account_holder_name: bankDetails.accountHolderName || null,
+                              account_number: bankDetails.bankAccountNumber || null,
+                              ifsc_code: bankDetails.ifscCode || null,
+                              bank_name: bankDetails.bankName || null,
+                              branch_name: bankDetails.branchName || null,
+                              
+                              aadhaar_file: aadhaarUrl || documents.aadhaar?.name || null,
+                              pan_file: panUrl || documents.pan?.name || null,
+                              experience_file: expUrl || documents.experience?.name || null,
+                              education_file: eduUrl || documents.education?.name || null,
+                              status: 'Active'
+                            };
+
                             if (editingEmployee) {
                               const empId = editingEmployee.rawData?.employee_id || editingEmployee.id;
                               const updatePayload = {
-                                first_name: basicDetails.firstName,
-                                last_name: basicDetails.lastName,
+                                first_name: basicDetails.firstName.trim(),
+                                last_name: basicDetails.lastName.trim(),
                                 avatar_url: uploadedAvatarUrl || editingEmployee.avatarUrl || null,
                                 date_of_birth: basicDetails.dateOfBirth || null,
                                 gender: basicDetails.gender || null,
-                                email: basicDetails.emailAddress,
-                                phone: basicDetails.phoneNumber || 'N/A',
+                                email: basicDetails.emailAddress.trim(),
+                                phone: basicDetails.phoneNumber?.trim() || 'N/A',
                                 department: jobDetails.department || 'Operations',
                                 designation: jobDetails.designation || 'Specialist',
                                 employment_type: jobDetails.employmentType || 'Full Time',
@@ -3733,7 +3739,7 @@ export default function App() {
                               }
 
                               const updated = await res.json();
-                              alert(`Employee ${updated.first_name} ${updated.last_name} (${updated.employee_id}) updated successfully in PostgreSQL!`);
+                              alert(`Employee ${updated.first_name} ${updated.last_name} (${updated.employee_id}) updated successfully!`);
                             } else {
                               const res = await fetch('/api/employees', {
                                 method: 'POST',
@@ -3748,10 +3754,13 @@ export default function App() {
                               }
 
                               const saved = await res.json();
-                              alert(`Employee ${saved.first_name} ${saved.last_name} (${saved.employee_id}) registered successfully in PostgreSQL!`);
+                              alert(`Employee ${saved.first_name} ${saved.last_name} (${saved.employee_id}) registered successfully!`);
                             }
 
-                            await fetchEmployees();
+                            // Refresh table and stats
+                            await Promise.all([fetchEmployees(), fetchStats()]);
+
+                            // Reset form and view cleanly
                             setEditingEmployee(null);
                             setViewMode('leave-management');
                             setCurrentStep(0);
@@ -3768,12 +3777,25 @@ export default function App() {
                           } catch (err) {
                             console.error('Error submitting employee:', err);
                             alert('Failed to connect to backend API');
+                          } finally {
+                            setIsSubmitting(false);
                           }
                         }}
-                        className="group flex items-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-7 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-emerald-500/25 active:scale-95 cursor-pointer"
+                        className={`group flex items-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-7 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-emerald-500/25 active:scale-95 cursor-pointer ${
+                          isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                        }`}
                       >
-                        <Check className="w-4 h-4 stroke-[3] group-hover:scale-110 transition-transform" />
-                        <span>{editingEmployee ? 'Save Changes' : 'Submit Registration'}</span>
+                        {isSubmitting ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Submitting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4 stroke-[3] group-hover:scale-110 transition-transform" />
+                            <span>{editingEmployee ? 'Save Changes' : 'Submit Registration'}</span>
+                          </>
+                        )}
                       </button>
                     </>
                   )}
