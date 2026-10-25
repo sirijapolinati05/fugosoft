@@ -145,27 +145,43 @@ def get_employees(
 
 @app.post("/api/employees", response_model=EmployeeResponse)
 def create_employee(emp_data: EmployeeCreate, db: Session = Depends(get_db)):
-    # Auto-generate employee_id if not supplied or if 'Auto-generated'
-    if not emp_data.employee_id or emp_data.employee_id.strip() in ("", "Auto-generated"):
-        count = db.query(EmployeeModel).count() + 1
-        emp_data.employee_id = f"EMP{count:03d}"
-    else:
-        # Check if ID already exists
-        existing = db.query(EmployeeModel).filter(EmployeeModel.employee_id == emp_data.employee_id).first()
-        if existing:
-            count = db.query(EmployeeModel).count() + 1
-            emp_data.employee_id = f"EMP{count:03d}"
-
-    # Verify unique email
-    existing_email = db.query(EmployeeModel).filter(EmployeeModel.email == emp_data.email).first()
+    # Clean email
+    clean_email = emp_data.email.strip().lower()
+    existing_email = db.query(EmployeeModel).filter(EmployeeModel.email.ilike(clean_email)).first()
     if existing_email:
         raise HTTPException(status_code=400, detail="Employee with this email address already exists.")
 
-    new_employee = EmployeeModel(**emp_data.model_dump())
-    db.add(new_employee)
-    db.commit()
-    db.refresh(new_employee)
-    return new_employee
+    # Auto-generate employee_id if not supplied or if 'Auto-generated'
+    emp_id_input = (emp_data.employee_id or "").strip()
+    if not emp_id_input or emp_id_input == "Auto-generated":
+        count = db.query(EmployeeModel).count() + 1
+        candidate_id = f"EMP{count:03d}"
+        while db.query(EmployeeModel).filter(EmployeeModel.employee_id == candidate_id).first():
+            count += 1
+            candidate_id = f"EMP{count:03d}"
+        emp_data.employee_id = candidate_id
+    else:
+        existing = db.query(EmployeeModel).filter(EmployeeModel.employee_id == emp_id_input).first()
+        if existing:
+            count = db.query(EmployeeModel).count() + 1
+            candidate_id = f"EMP{count:03d}"
+            while db.query(EmployeeModel).filter(EmployeeModel.employee_id == candidate_id).first():
+                count += 1
+                candidate_id = f"EMP{count:03d}"
+            emp_data.employee_id = candidate_id
+
+    emp_data.email = clean_email
+
+    try:
+        new_employee = EmployeeModel(**emp_data.model_dump())
+        db.add(new_employee)
+        db.commit()
+        db.refresh(new_employee)
+        return new_employee
+    except Exception as e:
+        db.rollback()
+        print(f"[Error creating employee]: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/api/employees/{emp_id}", response_model=EmployeeResponse)
 def get_employee(emp_id: str, db: Session = Depends(get_db)):
