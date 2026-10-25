@@ -611,6 +611,11 @@ export default function App() {
         setStepError('Please enter Email Address.');
         return false;
       }
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@(gmail\.com|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})$/i;
+      if (!emailPattern.test(basicDetails.emailAddress.trim())) {
+        setStepError('Invalid email address. Please enter a valid email (e.g. user@gmail.com or user@companyname.com).');
+        return false;
+      }
       if (!basicDetails.phoneNumber.trim()) {
         setStepError('Please enter Phone Number.');
         return false;
@@ -3634,6 +3639,12 @@ export default function App() {
 
                           if (!basicDetails.firstName?.trim() || !basicDetails.lastName?.trim() || !basicDetails.emailAddress?.trim()) {
                             showToast('Please fill in required fields (First Name, Last Name, Email).', 'error');
+                            return;
+                          }
+
+                          const emailPattern = /^[a-zA-Z0-9._%+-]+@(gmail\.com|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})$/i;
+                          if (!emailPattern.test(basicDetails.emailAddress.trim())) {
+                            showToast('Invalid email address. Please enter a valid email (@gmail.com or @companyname.com).', 'error');
                             return;
                           }
 

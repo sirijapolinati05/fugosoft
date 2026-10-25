@@ -9,6 +9,7 @@ import uuid
 from fastapi.staticfiles import StaticFiles
 
 from datetime import datetime, timedelta
+import re
 
 try:
     from database import engine, get_db, Base
@@ -145,8 +146,15 @@ def get_employees(
 
 @app.post("/api/employees", response_model=EmployeeResponse)
 def create_employee(emp_data: EmployeeCreate, db: Session = Depends(get_db)):
-    # Clean email
+    # Clean email and validate domain format
     clean_email = emp_data.email.strip().lower()
+    email_regex = r'^[a-zA-Z0-9._%+-]+@(gmail\.com|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})$'
+    if not re.match(email_regex, clean_email):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid email address. Please enter a valid email (@gmail.com or @companyname.com)."
+        )
+
     existing_email = db.query(EmployeeModel).filter(EmployeeModel.email.ilike(clean_email)).first()
     if existing_email:
         raise HTTPException(status_code=400, detail="Employee with this email address already exists.")
@@ -198,6 +206,16 @@ def update_employee(emp_id: str, updates: EmployeeUpdate, db: Session = Depends(
         raise HTTPException(status_code=404, detail="Employee not found")
     
     update_data = updates.model_dump(exclude_unset=True)
+    if "email" in update_data and update_data["email"]:
+        clean_email = update_data["email"].strip().lower()
+        email_regex = r'^[a-zA-Z0-9._%+-]+@(gmail\.com|[a-zA-Z0-9-]+\.[a-zA-Z]{2,})$'
+        if not re.match(email_regex, clean_email):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid email address. Please enter a valid email (@gmail.com or @companyname.com)."
+            )
+        update_data["email"] = clean_email
+
     for field, val in update_data.items():
         setattr(employee, field, val)
     
