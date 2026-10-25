@@ -26,6 +26,7 @@ import {
   UserPlus,
   MoreHorizontal,
   Eye,
+  EyeOff,
   Trash2,
   Edit3,
   X,
@@ -140,6 +141,8 @@ export default function App() {
   const [authError, setAuthError] = useState('');
   const [authSuccessMsg, setAuthSuccessMsg] = useState('');
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const checkStrongPassword = (pwd: string): string | null => {
     if (pwd.length < 8) return 'Password must be at least 8 characters long.';
@@ -1113,16 +1116,32 @@ export default function App() {
                       </button>
                     )}
                   </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <div className="relative flex items-center">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       required
                       value={authForm.password}
                       onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                      className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowPassword(prev => !prev);
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-slate-400 hover:text-slate-700 active:text-[#e45809] transition-colors cursor-pointer p-1 rounded-md"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4 stroke-[2]" />
+                      ) : (
+                        <Eye className="w-4 h-4 stroke-[2]" />
+                      )}
+                    </button>
                   </div>
 
                   {/* DYNAMIC PROGRESS LINE WHEN TYPING PASSWORD */}
@@ -1157,16 +1176,32 @@ export default function App() {
                     <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                       Confirm Password <span className="text-rose-500">*</span>
                     </label>
-                    <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <div className="relative flex items-center">
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
-                        type="password"
+                        type={showConfirmPassword ? 'text' : 'password'}
                         required
                         value={authForm.confirmPassword}
                         onChange={e => setAuthForm({ ...authForm, confirmPassword: e.target.value })}
                         placeholder="••••••••"
-                        className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                        className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
                       />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowConfirmPassword(prev => !prev);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-slate-400 hover:text-slate-700 active:text-[#e45809] transition-colors cursor-pointer p-1 rounded-md"
+                        title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="w-4 h-4 stroke-[2]" />
+                        ) : (
+                          <Eye className="w-4 h-4 stroke-[2]" />
+                        )}
+                      </button>
                     </div>
                   </div>
                 )}
