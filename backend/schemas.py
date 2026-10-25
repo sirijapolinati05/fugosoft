@@ -97,4 +97,32 @@ class EmployeeStatsResponse(BaseModel):
     new_joiners: int
     active_percentage: int
 
+class UserRegister(BaseModel):
+    full_name: str
+    email: str
+    password: str
+    role: Optional[str] = "HR Admin"
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class UserResponse(BaseModel):
+    id: int
+    full_name: str
+    email: str
+    role: str
+    token: str
+
+    class Config:
+        from_attributes = True
+
+class UserRequestOTP(BaseModel):
+    email: str
+
+class UserResetWithOTP(BaseModel):
+    email: str
+    otp: str
+    new_password: str
+
 

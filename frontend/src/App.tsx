@@ -47,7 +47,12 @@ import {
   AlertTriangle,
   Zap,
   Activity,
-  Menu
+  Menu,
+  Lock,
+  LogIn,
+  LogOut,
+  KeyRound,
+  User as UserIcon
 } from 'lucide-react';
 
 interface Employee {
@@ -112,12 +117,201 @@ export default function App() {
     onConfirm: () => {}
   });
 
+  const [currentUser, setCurrentUser] = useState<{ id: number; fullName: string; email: string; role: string; token: string } | null>(() => {
+    try {
+      const saved = localStorage.getItem('fugosoft_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [forgotStep, setForgotStep] = useState<'email' | 'otp'>('email');
+  const [authForm, setAuthForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    otp: '',
+    role: 'HR Admin'
+  });
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [authSuccessMsg, setAuthSuccessMsg] = useState('');
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
+  const checkStrongPassword = (pwd: string): string | null => {
+    if (pwd.length < 8) return 'Password must be at least 8 characters long.';
+    if (!/[A-Z]/.test(pwd)) return 'Password must include at least one uppercase letter (A-Z).';
+    if (!/[a-z]/.test(pwd)) return 'Password must include at least one lowercase letter (a-z).';
+    if (!/[0-9]/.test(pwd)) return 'Password must include at least one number (0-9).';
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) return 'Password must include at least one special character (!@#$%^&*).';
+    return null;
+  };
+
+  const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return { score: 0, label: '', color: 'bg-slate-200', text: '' };
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) score++;
+
+    if (score <= 2) return { score, label: 'Weak', color: 'bg-rose-500', textColor: 'text-rose-500', width: '25%' };
+    if (score === 3) return { score, label: 'Fair', color: 'bg-amber-500', textColor: 'text-amber-500', width: '50%' };
+    if (score === 4) return { score, label: 'Good', color: 'bg-blue-500', textColor: 'text-blue-500', width: '75%' };
+    return { score, label: 'Strong', color: 'bg-emerald-500', textColor: 'text-emerald-600', width: '100%' };
+  };
+
+  // Step 1 of Forgot Password: Send 6-digit OTP to registered email
+  const handleRequestOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthSuccessMsg('');
+
+    if (!authForm.email.trim()) {
+      setAuthError('Please enter your registered email address.');
+      return;
+    }
+
+    setIsAuthLoading(true);
+    try {
+      const res = await fetch('/api/auth/forgot-password/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: authForm.email.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAuthError(data.detail || 'Could not find an account with that email.');
+        return;
+      }
+      setForgotStep('otp');
+      setAuthSuccessMsg(
+        data.dev_code
+          ? `Code sent to ${authForm.email}! (Dev Code: ${data.dev_code})`
+          : `A 6-digit verification code has been sent to ${authForm.email}. Please check your inbox/spam.`
+      );
+    } catch (err) {
+      console.error('OTP request error:', err);
+      setAuthError('Failed to connect to email server. Please try again.');
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthSuccessMsg('');
+
+    // Sign up validations
+    if (authMode === 'signup') {
+      const pwdError = checkStrongPassword(authForm.password);
+      if (pwdError) {
+        setAuthError(pwdError);
+        return;
+      }
+      if (authForm.password !== authForm.confirmPassword) {
+        setAuthError('Password and Confirm Password do not match.');
+        return;
+      }
+    }
+
+    // Forgot password with OTP validation (Step 2)
+    if (authMode === 'forgot') {
+      if (!authForm.otp.trim() || authForm.otp.trim().length !== 6) {
+        setAuthError('Please enter the valid 6-digit verification code sent to your email.');
+        return;
+      }
+      const pwdError = checkStrongPassword(authForm.password);
+      if (pwdError) {
+        setAuthError(pwdError);
+        return;
+      }
+      if (authForm.password !== authForm.confirmPassword) {
+        setAuthError('New Password and Confirm Password do not match.');
+        return;
+      }
+    }
+
+    setIsAuthLoading(true);
+
+    try {
+      if (authMode === 'forgot') {
+        const res = await fetch('/api/auth/forgot-password/verify-and-reset', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authForm.email.trim(),
+            otp: authForm.otp.trim(),
+            new_password: authForm.password
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setAuthError(data.detail || 'Failed to verify code or reset password.');
+          return;
+        }
+        setAuthSuccessMsg('Password has been successfully updated! You can now sign in.');
+        showToast('Password updated successfully! Please sign in.', 'success');
+        setAuthMode('login');
+        setForgotStep('email');
+        setAuthForm(prev => ({ ...prev, password: '', confirmPassword: '', otp: '' }));
+        return;
+      }
+
+      const endpoint = authMode === 'signup' ? '/api/auth/signup' : '/api/auth/login';
+      const payload = authMode === 'signup'
+        ? { full_name: authForm.fullName, email: authForm.email, password: authForm.password, role: authForm.role }
+        : { email: authForm.email, password: authForm.password };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setAuthError(data.detail || 'Authentication failed. Please check your credentials.');
+        return;
+      }
+
+      const userSession = {
+        id: data.id,
+        fullName: data.full_name,
+        email: data.email,
+        role: data.role,
+        token: data.token
+      };
+
+      localStorage.setItem('fugosoft_user', JSON.stringify(userSession));
+      setCurrentUser(userSession);
+      showToast(`Welcome back, ${userSession.fullName}!`, 'success');
+    } catch (err) {
+      console.error('Auth error:', err);
+      setAuthError('Could not connect to authentication server. Please try again.');
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     const id = Date.now();
     setToast({ id, message, type });
     setTimeout(() => {
       setToast(prev => (prev?.id === id ? null : prev));
     }, 4000);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('fugosoft_user');
+    setCurrentUser(null);
+    setShowUserDropdown(false);
+    showToast('You have been logged out.', 'info');
   };
 
   // Form State for Step 1: Basic Details
@@ -722,6 +916,332 @@ export default function App() {
     return true;
   };
 
+  // If user is not authenticated, show modern Authentication (Login / Signup) Page
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-br from-[#0e243a] via-[#1a334e] to-[#254668] flex items-center justify-center p-4 sm:p-6 select-none">
+        <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          {/* Header branding */}
+          <div className="bg-[#1a334e] p-7 text-center relative overflow-hidden">
+            <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#e45809]/20 rounded-full blur-2xl pointer-events-none" />
+            <div className="inline-flex items-center justify-center gap-2 mb-3">
+              <svg className="w-9 h-9 text-white" viewBox="0 0 36 36" fill="currentColor">
+                <path d="M4 27V15l6 3v-6l6 3.5V8l8 5v14H4z" fill="white" />
+                <rect x="18" y="4" width="2.5" height="3" rx="0.5" fill="#f26522" />
+                <rect x="11" y="9" width="2.5" height="3" rx="0.5" fill="#f26522" />
+                <circle cx="10" cy="24" r="5" fill="#f26522" />
+              </svg>
+              <div className="text-left">
+                <span className="block font-black text-lg tracking-tight text-white leading-none">
+                  MANUFAC
+                </span>
+                <span className="block text-[9px] font-bold text-orange-400 tracking-[0.2em] leading-tight">
+                  INDUSTRIES
+                </span>
+              </div>
+            </div>
+            <h2 className="text-xl font-black text-white tracking-tight">
+              {authMode === 'login'
+                ? 'Welcome Back'
+                : authMode === 'signup'
+                ? 'Create an Account'
+                : forgotStep === 'email'
+                ? 'Forgot Password'
+                : 'Verify 6-Digit Code'}
+            </h2>
+            <p className="text-xs text-slate-300 mt-1">
+              {authMode === 'login'
+                ? 'Sign in to access Employee & HR Management Portal'
+                : authMode === 'signup'
+                ? 'Register a new administrator or HR profile'
+                : forgotStep === 'email'
+                ? 'Enter your registered email to receive a 6-digit verification code'
+                : `Enter the 6-digit code sent to ${authForm.email} and set your new password`}
+            </p>
+          </div>
+
+          {/* Form container */}
+          <div className="p-7">
+            {authError && (
+              <div className="mb-4 px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-150">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{authError}</span>
+              </div>
+            )}
+
+            {authSuccessMsg && (
+              <div className="mb-4 px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold flex items-center gap-2 animate-in fade-in duration-150">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span className="leading-snug">{authSuccessMsg}</span>
+              </div>
+            )}
+
+            {/* FORGOT PASSWORD STEP 1: REQUEST 6-DIGIT OTP */}
+            {authMode === 'forgot' && forgotStep === 'email' ? (
+              <form onSubmit={handleRequestOTP} className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Registered Email Address <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      required
+                      value={authForm.email}
+                      onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
+                      placeholder="user@example.com"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[10.5px] text-slate-400">
+                    A 6-digit reset code will be delivered to this email address via SMTP.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isAuthLoading}
+                  className="w-full mt-2 py-3 bg-[#e45809] hover:bg-[#cf4d05] text-white font-bold rounded-xl text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isAuthLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Sending Code...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-4 h-4 stroke-[2.2]" />
+                      <span>Send 6-Digit Code</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              /* LOGIN, SIGNUP, OR FORGOT STEP 2 (ENTER OTP + NEW PASSWORD) */
+              <form onSubmit={handleAuthSubmit} className="space-y-4">
+                {authMode === 'signup' && (
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Full Name <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={authForm.fullName}
+                        onChange={e => setAuthForm({ ...authForm, fullName: e.target.value })}
+                        placeholder="e.g. Vijay Kumar Adabala"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Email input (read-only in OTP verification step) */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Email Address <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      required
+                      readOnly={authMode === 'forgot' && forgotStep === 'otp'}
+                      value={authForm.email}
+                      onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
+                      placeholder="user@example.com"
+                      className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs focus:outline-none transition-all ${
+                        authMode === 'forgot' && forgotStep === 'otp'
+                          ? 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed'
+                          : 'bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809]'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* 6-DIGIT OTP INPUT FIELD (When in forgot password OTP step) */}
+                {authMode === 'forgot' && forgotStep === 'otp' && (
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                        6-Digit Verification Code <span className="text-rose-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleRequestOTP}
+                        disabled={isAuthLoading}
+                        className="text-[11px] font-semibold text-[#e45809] hover:underline cursor-pointer disabled:opacity-50"
+                      >
+                        Resend Code
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        maxLength={6}
+                        value={authForm.otp}
+                        onChange={e => setAuthForm({ ...authForm, otp: e.target.value.replace(/\D/g, '') })}
+                        placeholder="123456"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                      {authMode === 'forgot' ? 'New Password' : 'Password'} <span className="text-rose-500">*</span>
+                    </label>
+                    {authMode === 'login' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('forgot');
+                          setForgotStep('email');
+                          setAuthError('');
+                          setAuthSuccessMsg('');
+                        }}
+                        className="text-[11px] font-semibold text-[#e45809] hover:underline cursor-pointer"
+                      >
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      required
+                      value={authForm.password}
+                      onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                    />
+                  </div>
+
+                  {/* DYNAMIC PROGRESS LINE WHEN TYPING PASSWORD */}
+                  {(authMode === 'signup' || authMode === 'forgot') && authForm.password && (
+                    <div className="mt-2 animate-in fade-in duration-150">
+                      <div className="flex items-center justify-between text-[10px] mb-1 font-semibold">
+                        <span className="text-slate-500">Password Strength:</span>
+                        <span className={getPasswordStrength(authForm.password).textColor}>
+                          {getPasswordStrength(authForm.password).label}
+                        </span>
+                      </div>
+                      {/* Progress Bar Track */}
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${getPasswordStrength(authForm.password).color} rounded-full transition-all duration-300 ease-out`}
+                          style={{ width: getPasswordStrength(authForm.password).width }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {(authMode === 'signup' || authMode === 'forgot') && (
+                    <p className="mt-1.5 text-[10.5px] text-slate-400 leading-normal">
+                      Must be at least 8 chars with uppercase, lowercase, number & special symbol.
+                    </p>
+                  )}
+                </div>
+
+                {/* Confirm Password in Sign up and Forgot Password modes */}
+                {(authMode === 'signup' || authMode === 'forgot') && (
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Confirm Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        required
+                        value={authForm.confirmPassword}
+                        onChange={e => setAuthForm({ ...authForm, confirmPassword: e.target.value })}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isAuthLoading}
+                  className="w-full mt-2 py-3 bg-[#e45809] hover:bg-[#cf4d05] text-white font-bold rounded-xl text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isAuthLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Please wait...</span>
+                    </>
+                  ) : authMode === 'login' ? (
+                    <>
+                      <LogIn className="w-4 h-4 stroke-[2.2]" />
+                      <span>Sign In to Dashboard</span>
+                    </>
+                  ) : authMode === 'signup' ? (
+                    <>
+                      <UserCheck className="w-4 h-4 stroke-[2.2]" />
+                      <span>Create Account</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 stroke-[2.2]" />
+                      <span>Verify Code & Reset Password</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+              {authMode === 'forgot' ? (
+                <p className="text-xs text-slate-500">
+                  Remember your password?
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode('login');
+                      setForgotStep('email');
+                      setAuthError('');
+                      setAuthSuccessMsg('');
+                    }}
+                    className="ml-1 text-[#e45809] font-bold hover:underline cursor-pointer"
+                  >
+                    Sign in
+                  </button>
+                </p>
+              ) : (
+                <p className="text-xs text-slate-500">
+                  {authMode === 'login' ? "Don't have an account?" : 'Already have an account?'}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode(authMode === 'login' ? 'signup' : 'login');
+                      setForgotStep('email');
+                      setAuthError('');
+                      setAuthSuccessMsg('');
+                    }}
+                    className="ml-1 text-[#e45809] font-bold hover:underline cursor-pointer"
+                  >
+                    {authMode === 'login' ? 'Sign up' : 'Sign in'}
+                  </button>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen w-full bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
       {/* MOBILE BACKDROP OVERLAY */}
@@ -838,12 +1358,44 @@ export default function App() {
               <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[1.8]" />
             </button>
 
-            <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#d95d10] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                U
+            <div className="relative">
+              <div
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#d95d10] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  {currentUser?.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <div className="hidden sm:flex flex-col text-left">
+                  <span className="text-xs font-semibold text-slate-800 leading-tight">
+                    {currentUser?.fullName || 'User Name'}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-normal leading-none">
+                    {currentUser?.role || 'Admin'}
+                  </span>
+                </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
               </div>
-              <span className="hidden sm:inline text-xs font-semibold text-slate-700">User Name</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+
+              {/* User dropdown popup menu */}
+              {showUserDropdown && (
+                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-2 border-b border-slate-100">
+                    <p className="text-xs font-bold text-slate-900 truncate">{currentUser?.fullName || 'HR Manager'}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{currentUser?.email || 'admin@fugosoft.com'}</p>
+                  </div>
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2 font-semibold transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>
