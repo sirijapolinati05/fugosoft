@@ -67,4 +67,75 @@ body,
   background: transparent !important;
 }
 
+/* ==========================================================
+   MOBILE RESPONSIVENESS MEDIA QUERIES (All Mobile Devices)
+   Breakpoints: 
+   - Extra Small (iPhone SE, Galaxy Fold): <= 380px
+   - Standard Mobile (iPhone 12/13/14/15, Pixel, Galaxy): <= 640px
+   - Tablets & Foldables: <= 768px & <= 1024px
+   ========================================================== */
+
+/* Universal mobile touch ergonomics & fluid sizing */
+@media screen and (max-width: 640px) {
+  /* Prevent horizontal scroll leakage */
+  html, body {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Optimize touch target sizes */
+  button, input, select, textarea, label {
+    touch-action: manipulation;
+  }
+
+  /* Reduce input font zoom on iOS */
+  input, select, textarea {
+    font-size: 14px !important;
+  }
+
+  /* Form step cards compact padding */
+  .p-8, .sm\:p-9, .p-9 {
+    padding: 1.25rem !important;
+  }
+
+  /* Tables container smooth touch swipe */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Metric cards stacked spacing */
+  .w-13.h-13 {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+  }
+}
+
+/* Extra small screens (iPhone SE, Galaxy Z Flip cover, small Androids <= 380px) */
+@media screen and (max-width: 380px) {
+  .text-2xl {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.125rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  /* Buttons full width on tiny screens */
+  .p-8, .sm\:p-9, .p-9 {
+    padding: 1rem !important;
+  }
+}
+
+/* Tablet & Portrait orientation */
+@media screen and (min-width: 641px) and (max-width: 1024px) {
+  .p-8, .sm\:p-9, .p-9 {
+    padding: 1.75rem !important;
+  }
+}
+
 

@@ -47,7 +47,8 @@ import {
   AlertCircle,
   AlertTriangle,
   Zap,
-  Activity
+  Activity,
+  Menu
 } from 'lucide-react';
 
 interface Employee {
@@ -245,6 +246,7 @@ export default function App() {
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
   const [activeFilterAccordion, setActiveFilterAccordion] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const hasActiveAdvancedFilters =
     locationFilter !== 'All Locations' ||
@@ -697,11 +699,23 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-full bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
-      {/* FIXED LEFT SIDEBAR */}
-      <aside className="w-[208px] h-screen bg-[#1a334e] flex flex-col justify-between shrink-0 select-none relative z-20">
+      {/* MOBILE BACKDROP OVERLAY */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-30 lg:hidden animate-in fade-in duration-200"
+        />
+      )}
+
+      {/* LEFT SIDEBAR (Responsive drawer on mobile, fixed width on lg+) */}
+      <aside
+        className={`fixed lg:static top-0 bottom-0 left-0 z-40 w-[240px] lg:w-[208px] h-screen bg-[#1a334e] flex flex-col justify-between shrink-0 select-none transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
         <div className="flex flex-col">
           {/* Top Logo Container matching topbar height */}
-          <div className="h-14 flex items-center px-4 bg-white border-b border-r border-slate-200 shrink-0">
+          <div className="h-14 flex items-center justify-between px-4 bg-white border-b border-r border-slate-200 shrink-0">
             <div className="flex items-center gap-2">
               <div className="relative flex items-center justify-center shrink-0">
                 <svg className="w-8 h-8 text-[#1a334e]" viewBox="0 0 36 36" fill="currentColor">
@@ -721,10 +735,19 @@ export default function App() {
                 </span>
               </div>
             </div>
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="lg:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              title="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Navigation Menu */}
-          <nav className="p-3 space-y-1.5 mt-1">
+          <nav className="p-3 space-y-1.5 mt-1 overflow-y-auto max-h-[calc(100vh-140px)]">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = item.name === activeNav;
@@ -736,6 +759,7 @@ export default function App() {
                     if (item.name === 'Employees') {
                       setViewMode('leave-management');
                     }
+                    setMobileMenuOpen(false);
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                     isActive
@@ -752,7 +776,7 @@ export default function App() {
         </div>
 
         {/* Bottom Silhouette & Decorative Gear */}
-        <div className="pointer-events-none w-full relative h-40 overflow-hidden opacity-30 flex items-end">
+        <div className="pointer-events-none w-full relative h-32 lg:h-40 overflow-hidden opacity-30 flex items-end">
           <svg className="w-full h-full text-slate-900" viewBox="0 0 200 160" fill="currentColor" preserveAspectRatio="none">
             <rect x="10" y="55" width="16" height="105" />
             <rect x="34" y="30" width="18" height="130" />
@@ -767,26 +791,34 @@ export default function App() {
       {/* RIGHT MAIN VIEW */}
       <div className="flex-1 flex flex-col min-w-0 h-screen bg-[#fbfcfd] overflow-hidden">
         {/* TOP BAR */}
-        <header className="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 z-10">
-          {/* Header Title displaying active page name (Dashboard, Employees, Attendance, etc.) */}
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-extrabold text-[#0e243a] tracking-tight">
+        <header className="h-14 bg-white border-b border-slate-200 px-3.5 sm:px-6 flex items-center justify-between shrink-0 z-10">
+          {/* Header Title displaying active page name + Mobile Hamburger button */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              title="Open menu"
+            >
+              <Menu className="w-5 h-5 stroke-[2.2]" />
+            </button>
+            <h1 className="text-base sm:text-lg font-extrabold text-[#0e243a] tracking-tight truncate">
               {activeNav}
             </h1>
           </div>
 
           {/* Right Profile & Alert */}
-          <div className="flex items-center gap-5">
-            <button className="relative text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
-              <Bell className="w-5 h-5 stroke-[1.8]" />
-              <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#f26522] rounded-full border-2 border-white"></span>
+          <div className="flex items-center gap-3 sm:gap-5">
+            <button className="relative text-slate-600 hover:text-slate-900 transition-colors cursor-pointer p-1">
+              <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[1.8]" />
+              <span className="absolute 0.5 sm:-top-0.5 right-0.5 sm:-right-0.5 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[#f26522] rounded-full border-2 border-white"></span>
             </button>
 
-            <div className="flex items-center gap-2 cursor-pointer select-none">
-              <div className="w-8 h-8 rounded-full bg-[#d95d10] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#d95d10] text-white flex items-center justify-center font-bold text-xs shadow-xs">
                 U
               </div>
-              <span className="text-xs font-semibold text-slate-700">User Name</span>
+              <span className="hidden sm:inline text-xs font-semibold text-slate-700">User Name</span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </div>
           </div>
@@ -869,14 +901,14 @@ export default function App() {
           });
 
           return (
-          <main className="flex-1 px-8 py-5 overflow-y-auto">
+          <main className="flex-1 px-3.5 sm:px-6 lg:px-8 py-4 sm:py-5 overflow-y-auto">
             {/* Top Action Header with Add Employee */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
               <div>
-                <h1 className="text-2xl font-extrabold text-[#0e243a] tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-extrabold text-[#0e243a] tracking-tight">
                   Employees
                 </h1>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-0.5 sm:mt-1">
                   Manage employee directory, profiles, and organization details.
                 </p>
               </div>
@@ -889,7 +921,7 @@ export default function App() {
                   setViewMode('add-employee');
                   setCurrentStep(0);
                 }}
-                className="flex items-center gap-2 bg-[#e45809] hover:bg-[#cf4d05] text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-98"
+                className="flex items-center justify-center gap-2 bg-[#e45809] hover:bg-[#cf4d05] text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-98 w-full sm:w-auto"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Add Employee</span>
@@ -1015,15 +1047,15 @@ export default function App() {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               {/* 3D Inset Sunken Search Bar */}
-              <div className="w-84 relative rounded-lg bg-[#ebf0f5] p-[1.5px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.13),inset_0_1px_2px_rgba(0,0,0,0.10),0_1px_0_rgba(255,255,255,0.85)] border border-slate-300/80">
+              <div className="w-full sm:w-80 md:w-84 relative rounded-lg bg-[#ebf0f5] p-[1.5px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.13),inset_0_1px_2px_rgba(0,0,0,0.10),0_1px_0_rgba(255,255,255,0.85)] border border-slate-300/80">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
                   <Search className="w-3.5 h-3.5" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Search by name, ID, department, role, or location..."
+                  placeholder="Search name, ID, dept, role, location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-8 py-1.5 bg-transparent text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none"
@@ -1289,9 +1321,9 @@ export default function App() {
             </div>
 
             {/* Table & Inline Side Card Layout */}
-            <div className="flex items-start gap-4 mb-4">
+            <div className="flex flex-col lg:flex-row items-start gap-4 mb-4">
               {/* Table Container */}
-              <div className="flex-1 min-w-0 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+              <div className="flex-1 w-full min-w-0 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
                 <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-700">
                   <thead className="bg-[#fafbfd] border-b border-slate-200 text-slate-600 font-bold">
@@ -1569,12 +1601,18 @@ export default function App() {
               </div>
             </div>
 
-            {/* INLINE EMPLOYEE DETAILS CARD (Opens beside the table exactly like in reference UI) */}
+            {/* INLINE / MOBILE MODAL EMPLOYEE DETAILS CARD */}
             {selectedEmployee && (
-              <div className="w-[380px] shrink-0 bg-white border border-slate-200/90 rounded-2xl shadow-md flex flex-col overflow-hidden animate-in fade-in duration-150 sticky top-4 max-h-[calc(100vh-100px)]">
-                {/* Compact Card Header */}
-                <div className="bg-[#1a334e] text-white px-4 py-3 relative shrink-0">
-                  <div className="flex items-center justify-end gap-1.5 mb-1">
+              <>
+                {/* Mobile Backdrop for Side Card */}
+                <div
+                  onClick={() => setSelectedEmployee(null)}
+                  className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
+                />
+                <div className="fixed inset-x-3 bottom-3 top-16 sm:inset-auto sm:right-4 sm:top-18 sm:bottom-4 sm:w-[380px] lg:static lg:inset-auto lg:w-[380px] z-50 lg:z-auto shrink-0 bg-white border border-slate-200/90 rounded-2xl shadow-2xl lg:shadow-md flex flex-col overflow-hidden animate-in fade-in duration-150 lg:sticky lg:top-4 max-h-[calc(100vh-80px)] lg:max-h-[calc(100vh-100px)]">
+                  {/* Compact Card Header */}
+                  <div className="bg-[#1a334e] text-white px-4 py-3 relative shrink-0">
+                    <div className="flex items-center justify-end gap-1.5 mb-1">
                     {/* Edit Button */}
                     <button
                       onClick={() => {
@@ -1937,13 +1975,14 @@ export default function App() {
                   </button>
                 </div>
               </div>
-            )}
+            </>
+          )}
           </div>
           </main>
           );
         })() : (
           /* VIEW 2: NEW EMPLOYEE REGISTRATION FORM FLOW */
-          <main className="flex-1 px-10 py-5 pb-16 flex flex-col justify-between max-w-5xl w-full overflow-y-auto">
+          <main className="flex-1 px-3 sm:px-6 lg:px-10 py-4 sm:py-5 pb-16 flex flex-col justify-between max-w-5xl w-full overflow-y-auto">
             <div>
               {/* Back to Leave Management / Employees Link */}
               <div
@@ -1959,18 +1998,18 @@ export default function App() {
               </div>
 
               {/* Header with Title and Step Indicator */}
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4 sm:mb-6">
                 <div>
-                  <h1 className="text-2xl font-extrabold text-[#0e243a] tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-extrabold text-[#0e243a] tracking-tight">
                     New Employee Registration
                   </h1>
-                  <p className="text-xs text-slate-500 mt-1 mb-8">
+                  <p className="text-xs text-slate-500 mt-1">
                     Add basic details, job information, salary, bank details and documents to create a new employee record.
                   </p>
                 </div>
 
                 {currentStep > 0 && (
-                  <div className="flex items-center gap-2 border border-orange-200 bg-orange-50/80 px-3 py-1.5 rounded-lg shrink-0">
+                  <div className="flex items-center gap-2 border border-orange-200 bg-orange-50/80 px-3 py-1.5 rounded-lg shrink-0 w-fit">
                     <span className="text-xs text-orange-800 font-semibold">
                       Step {currentStep} of 6:
                     </span>
@@ -1981,9 +2020,9 @@ export default function App() {
                 )}
               </div>
 
-              {/* Horizontal Stepper */}
-              <div className="mb-8 px-8">
-                <div className="flex items-start">
+              {/* Horizontal Stepper (Scrollable on small mobile screens) */}
+              <div className="mb-6 sm:mb-8 px-2 sm:px-8 overflow-x-auto pb-2 [scrollbar-width:none]">
+                <div className="flex items-start min-w-[500px] sm:min-w-0">
                   {steps.map((step, idx) => {
                     const stepNum = step.number;
                     const effectiveStep = currentStep === 0 ? 1 : currentStep;
