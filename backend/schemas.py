@@ -120,6 +120,10 @@ class UserResponse(BaseModel):
 class UserRequestOTP(BaseModel):
     email: str
 
+class UserVerifyOTP(BaseModel):
+    email: str
+    otp: str
+
 class UserResetWithOTP(BaseModel):
     email: str
     otp: str

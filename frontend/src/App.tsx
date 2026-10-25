@@ -128,7 +128,7 @@ export default function App() {
   });
 
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
-  const [forgotStep, setForgotStep] = useState<'email' | 'otp'>('email');
+  const [forgotStep, setForgotStep] = useState<'email' | 'otp' | 'newPassword'>('email');
   const [authForm, setAuthForm] = useState({
     fullName: '',
     email: '',
@@ -192,6 +192,8 @@ export default function App() {
         return;
       }
       setForgotStep('otp');
+      // Clear any previous passwords from form so old password is never displayed
+      setAuthForm(prev => ({ ...prev, password: '', confirmPassword: '', otp: '' }));
       setAuthSuccessMsg(
         data.dev_code
           ? `Code sent to ${authForm.email}! (Dev Code: ${data.dev_code})`
@@ -200,6 +202,44 @@ export default function App() {
     } catch (err) {
       console.error('OTP request error:', err);
       setAuthError('Failed to connect to email server. Please try again.');
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  // Step 2 of Forgot Password: Verify OTP only before allowing user to enter a new password
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setAuthSuccessMsg('');
+
+    if (!authForm.otp.trim() || authForm.otp.trim().length !== 6) {
+      setAuthError('Please enter the 6-digit verification code sent to your email.');
+      return;
+    }
+
+    setIsAuthLoading(true);
+    try {
+      const res = await fetch('/api/auth/forgot-password/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: authForm.email.trim(),
+          otp: authForm.otp.trim()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAuthError(data.detail || 'Invalid or expired verification code.');
+        return;
+      }
+      // OTP verified successfully: move to step 3 (enter new password) with blank password fields
+      setForgotStep('newPassword');
+      setAuthForm(prev => ({ ...prev, password: '', confirmPassword: '' }));
+      setAuthSuccessMsg('Code verified! Please set your new password below.');
+    } catch (err) {
+      console.error('Verify OTP error:', err);
+      setAuthError('Failed to verify code. Please try again.');
     } finally {
       setIsAuthLoading(false);
     }
@@ -223,10 +263,11 @@ export default function App() {
       }
     }
 
-    // Forgot password with OTP validation (Step 2)
+    // Forgot password with OTP validation (Step 3: New Password)
     if (authMode === 'forgot') {
       if (!authForm.otp.trim() || authForm.otp.trim().length !== 6) {
-        setAuthError('Please enter the valid 6-digit verification code sent to your email.');
+        setAuthError('Verification code missing. Please restart forgot password.');
+        setForgotStep('email');
         return;
       }
       const pwdError = checkStrongPassword(authForm.password);
@@ -950,7 +991,9 @@ export default function App() {
                 ? 'Create an Account'
                 : forgotStep === 'email'
                 ? 'Forgot Password'
-                : 'Verify 6-Digit Code'}
+                : forgotStep === 'otp'
+                ? 'Verify 6-Digit Code'
+                : 'Set New Password'}
             </h2>
             <p className="text-xs text-slate-300 mt-1">
               {authMode === 'login'
@@ -959,7 +1002,9 @@ export default function App() {
                 ? 'Register a new administrator or HR profile'
                 : forgotStep === 'email'
                 ? 'Enter your registered email to receive a 6-digit verification code'
-                : `Enter the 6-digit code sent to ${authForm.email} and set your new password`}
+                : forgotStep === 'otp'
+                ? `Enter the 6-digit code sent to ${authForm.email}`
+                : 'Enter and confirm your new strong password'}
             </p>
           </div>
 
@@ -1020,8 +1065,76 @@ export default function App() {
                   )}
                 </button>
               </form>
+            ) : authMode === 'forgot' && forgotStep === 'otp' ? (
+              /* FORGOT PASSWORD STEP 2: VERIFY 6-DIGIT OTP ONLY */
+              <form onSubmit={handleVerifyOTP} className="space-y-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      readOnly
+                      value={authForm.email}
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-xl text-xs cursor-not-allowed select-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                      6-Digit Verification Code <span className="text-rose-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleRequestOTP}
+                      disabled={isAuthLoading}
+                      className="text-[11px] font-semibold text-[#e45809] hover:underline cursor-pointer disabled:opacity-50"
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      required
+                      autoFocus
+                      maxLength={6}
+                      value={authForm.otp}
+                      onChange={e => setAuthForm({ ...authForm, otp: e.target.value.replace(/\D/g, '') })}
+                      placeholder="123456"
+                      className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-base font-mono tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[10.5px] text-slate-400">
+                    Enter the 6-digit verification code sent to your email.
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isAuthLoading || authForm.otp.length !== 6}
+                  className="w-full mt-2 py-3 bg-[#e45809] hover:bg-[#cf4d05] text-white font-bold rounded-xl text-xs shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-98 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isAuthLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Verifying Code...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 stroke-[2.2]" />
+                      <span>Verify Code</span>
+                    </>
+                  )}
+                </button>
+              </form>
             ) : (
-              /* LOGIN, SIGNUP, OR FORGOT STEP 2 (ENTER OTP + NEW PASSWORD) */
+              /* LOGIN, SIGNUP, OR FORGOT STEP 3 (NEW PASSWORD BOX) */
               <form onSubmit={handleAuthSubmit} className="space-y-4">
                 {authMode === 'signup' && (
                   <div>
@@ -1042,7 +1155,7 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Email input (read-only in OTP verification step) */}
+                {/* Email input (read-only in Forgot newPassword step) */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Email Address <span className="text-rose-500">*</span>
@@ -1052,49 +1165,18 @@ export default function App() {
                     <input
                       type="email"
                       required
-                      readOnly={authMode === 'forgot' && forgotStep === 'otp'}
+                      readOnly={authMode === 'forgot'}
                       value={authForm.email}
                       onChange={e => setAuthForm({ ...authForm, email: e.target.value })}
                       placeholder="user@example.com"
                       className={`w-full pl-10 pr-3.5 py-2.5 rounded-xl text-xs focus:outline-none transition-all ${
-                        authMode === 'forgot' && forgotStep === 'otp'
+                        authMode === 'forgot'
                           ? 'bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed'
                           : 'bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809]'
                       }`}
                     />
                   </div>
                 </div>
-
-                {/* 6-DIGIT OTP INPUT FIELD (When in forgot password OTP step) */}
-                {authMode === 'forgot' && forgotStep === 'otp' && (
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                        6-Digit Verification Code <span className="text-rose-500">*</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={handleRequestOTP}
-                        disabled={isAuthLoading}
-                        className="text-[11px] font-semibold text-[#e45809] hover:underline cursor-pointer disabled:opacity-50"
-                      >
-                        Resend Code
-                      </button>
-                    </div>
-                    <div className="relative">
-                      <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        required
-                        maxLength={6}
-                        value={authForm.otp}
-                        onChange={e => setAuthForm({ ...authForm, otp: e.target.value.replace(/\D/g, '') })}
-                        placeholder="123456"
-                        className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#e45809]/40 focus:border-[#e45809] transition-all"
-                      />
-                    </div>
-                  </div>
-                )}
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
@@ -1109,6 +1191,7 @@ export default function App() {
                           setForgotStep('email');
                           setAuthError('');
                           setAuthSuccessMsg('');
+                          setAuthForm(prev => ({ ...prev, password: '', confirmPassword: '', otp: '' }));
                         }}
                         className="text-[11px] font-semibold text-[#e45809] hover:underline cursor-pointer"
                       >
@@ -1121,6 +1204,7 @@ export default function App() {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
+                      autoFocus={authMode === 'forgot'}
                       value={authForm.password}
                       onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
                       placeholder="••••••••"
@@ -1229,7 +1313,7 @@ export default function App() {
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4 stroke-[2.2]" />
-                      <span>Verify Code & Reset Password</span>
+                      <span>Reset Password</span>
                     </>
                   )}
                 </button>

@@ -17,14 +17,14 @@ try:
     from models import EmployeeModel, UserModel
     from schemas import (
         EmployeeCreate, EmployeeUpdate, EmployeeResponse, PaginatedEmployeesResponse, EmployeeStatsResponse,
-        UserRegister, UserLogin, UserResponse, UserRequestOTP, UserResetWithOTP
+        UserRegister, UserLogin, UserResponse, UserRequestOTP, UserVerifyOTP, UserResetWithOTP
     )
 except ImportError:
     from .database import engine, get_db, Base
     from .models import EmployeeModel, UserModel
     from .schemas import (
         EmployeeCreate, EmployeeUpdate, EmployeeResponse, PaginatedEmployeesResponse, EmployeeStatsResponse,
-        UserRegister, UserLogin, UserResponse, UserRequestOTP, UserResetWithOTP
+        UserRegister, UserLogin, UserResponse, UserRequestOTP, UserVerifyOTP, UserResetWithOTP
     )
 
 import hashlib
@@ -509,10 +509,35 @@ def request_password_reset_otp(data: UserRequestOTP, db: Session = Depends(get_d
         "dev_code": None if smtp_configured else otp_code
     }
 
+@app.post("/api/auth/forgot-password/verify-otp")
+def verify_otp_only(data: UserVerifyOTP, db: Session = Depends(get_db)):
+    """
+    Step 2: Validates the 6-digit OTP entered by the user.
+    """
+    clean_email = data.email.strip().lower()
+    user = db.query(UserModel).filter(UserModel.email == clean_email).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="No account registered with this email address.")
+
+    if not user.reset_otp or not user.reset_otp_expiry:
+        raise HTTPException(status_code=400, detail="No active reset code found. Please request a new code.")
+
+    if datetime.utcnow() > user.reset_otp_expiry:
+        user.reset_otp = None
+        user.reset_otp_expiry = None
+        db.commit()
+        raise HTTPException(status_code=400, detail="The verification code has expired. Please request a new code.")
+
+    if user.reset_otp.strip() != data.otp.strip():
+        raise HTTPException(status_code=400, detail="Invalid verification code. Please check your email and try again.")
+
+    return {"message": "OTP verified successfully. You can now set your new password."}
+
 @app.post("/api/auth/forgot-password/verify-and-reset")
 def verify_otp_and_reset_password(data: UserResetWithOTP, db: Session = Depends(get_db)):
     """
-    Step 2: Validates the 6-digit OTP entered by user, verifies strong password, and updates password.
+    Step 3: Validates the 6-digit OTP, verifies strong new password, and updates password.
     """
     clean_email = data.email.strip().lower()
     user = db.query(UserModel).filter(UserModel.email == clean_email).first()
