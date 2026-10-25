@@ -3653,7 +3653,7 @@ export default function App() {
                             department: jobDetails.department || 'Operations',
                             designation: jobDetails.designation || 'Specialist',
                             employment_type: jobDetails.employmentType || 'Full Time',
-                            joiningDate: jobDetails.joiningDate || new Date().toISOString().split('T')[0],
+                            joining_date: jobDetails.joiningDate || new Date().toISOString().split('T')[0],
                             reporting_manager: jobDetails.reportingManager || null,
                             work_location: jobDetails.workLocation || 'Bangalore',
                             

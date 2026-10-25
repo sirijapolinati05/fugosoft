@@ -62,14 +62,13 @@ def get_employee_stats(db: Session = Depends(get_db)):
     
     for emp in all_employees:
         is_new = False
-        # Check created_at timestamp
-        if emp.created_at and emp.created_at >= thirty_days_ago:
-            is_new = True
-        # Also check joining_date string if it contains current month or within 30 days
-        elif emp.joining_date:
-            try:
-                # Handle YYYY-MM-DD or DD-MM-YYYY formats
-                clean_date = emp.joining_date.strip()
+        try:
+            # Check created_at timestamp
+            if emp.created_at and emp.created_at >= thirty_days_ago:
+                is_new = True
+            # Also check joining_date string if it contains current month or within 30 days
+            elif emp.joining_date:
+                clean_date = str(emp.joining_date).strip()
                 if clean_date.startswith(current_year_month):
                     is_new = True
                 else:
@@ -82,8 +81,8 @@ def get_employee_stats(db: Session = Depends(get_db)):
                             continue
                     if parsed_date and parsed_date >= (datetime.utcnow() - timedelta(days=30)):
                         is_new = True
-            except Exception:
-                pass
+        except Exception:
+            pass
         
         if is_new:
             new_joiners += 1
