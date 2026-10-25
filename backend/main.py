@@ -464,26 +464,53 @@ def send_otp_email(recipient_email: str, recipient_name: str, otp_code: str) -> 
 
     # If SMTP is configured with real credentials, send via SMTP
     if clean_user and clean_password:
-        try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = f"Your Password Reset Code: {otp_code} - Manufac Industries"
-            msg["From"] = f"Manufac Support <{clean_from}>"
-            msg["To"] = recipient_email
-            msg.attach(MIMEText(html_content, "html"))
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Your Password Reset Code: {otp_code} - Manufac Industries"
+        msg["From"] = f"Manufac Support <{clean_from}>"
+        msg["To"] = recipient_email
+        msg.attach(MIMEText(html_content, "html"))
 
-            with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
-                server.starttls()
-                server.login(clean_user, clean_password)
-                server.sendmail(clean_from, recipient_email, msg.as_string())
+        # Strategy 1: Try configured port (587 STARTTLS or 465 SSL)
+        try:
+            if smtp_port == 465:
+                import ssl
+                context = ssl.create_default_context()
+                with smtplib.SMTP_SSL(smtp_host, 465, context=context, timeout=12) as server:
+                    server.login(clean_user, clean_password)
+                    server.sendmail(clean_from, recipient_email, msg.as_string())
+            else:
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=12) as server:
+                    server.starttls()
+                    server.login(clean_user, clean_password)
+                    server.sendmail(clean_from, recipient_email, msg.as_string())
             print(f"[SMTP] Reset OTP sent successfully to {recipient_email}")
-            return True
-        except Exception as e:
-            print(f"[SMTP ERROR] Failed to send email via SMTP: {e}")
-            return False
+            return (True, None)
+        except Exception as primary_err:
+            print(f"[SMTP] Port {smtp_port} attempt failed ({primary_err}). Trying fallback port...")
+            # Strategy 2: If 587 was blocked by cloud host provider, try 465 SSL
+            fallback_port = 465 if smtp_port != 465 else 587
+            try:
+                if fallback_port == 465:
+                    import ssl
+                    context = ssl.create_default_context()
+                    with smtplib.SMTP_SSL(smtp_host, 465, context=context, timeout=12) as server:
+                        server.login(clean_user, clean_password)
+                        server.sendmail(clean_from, recipient_email, msg.as_string())
+                else:
+                    with smtplib.SMTP(smtp_host, fallback_port, timeout=12) as server:
+                        server.starttls()
+                        server.login(clean_user, clean_password)
+                        server.sendmail(clean_from, recipient_email, msg.as_string())
+                print(f"[SMTP] Fallback to port {fallback_port} succeeded!")
+                return (True, None)
+            except Exception as fallback_err:
+                err_msg = f"Port {smtp_port} failed: {primary_err}; Port {fallback_port} failed: {fallback_err}"
+                print(f"[SMTP ERROR] Both attempts failed: {err_msg}")
+                return (False, err_msg)
     else:
         # Fallback log when SMTP credentials are not yet set in .env
         print(f"[DEVELOPMENT MODE] SMTP credentials not set. 6-digit OTP for {recipient_email}: {otp_code}")
-        return True
+        return (True, None)
 
 @app.post("/api/auth/forgot-password/request-otp")
 def request_password_reset_otp(data: UserRequestOTP, db: Session = Depends(get_db)):
@@ -502,16 +529,14 @@ def request_password_reset_otp(data: UserRequestOTP, db: Session = Depends(get_d
     user.reset_otp_expiry = datetime.utcnow() + timedelta(minutes=10)
     db.commit()
 
-    email_sent = send_otp_email(user.email, user.full_name, otp_code)
+    email_sent, smtp_err = send_otp_email(user.email, user.full_name, otp_code)
     
     # Check if SMTP is configured
     smtp_configured = bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
 
     if smtp_configured and not email_sent:
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to send verification email via SMTP server. Please verify your SMTP settings or check your spam folder."
-        )
+        error_detail = f"SMTP Delivery Error: {smtp_err}" if smtp_err else "Failed to send email via SMTP server."
+        raise HTTPException(status_code=500, detail=error_detail)
 
     return {
         "message": f"A 6-digit verification code has been sent to {user.email}.",
