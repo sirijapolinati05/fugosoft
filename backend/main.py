@@ -211,15 +211,15 @@ def bulk_delete_employees(payload: BulkDeleteRequest, db: Session = Depends(get_
     db.commit()
     return {"deleted_count": deleted, "message": f"{deleted} employee(s) deleted successfully"}
 
+try:
+    from storage import upload_file_to_storage
+except ImportError:
+    from .storage import upload_file_to_storage
+
 @app.post("/api/upload")
 async def upload_document(file: UploadFile = File(...)):
-    # Sanitize and keep filename safe
-    ext = os.path.splitext(file.filename)[1]
     unique_filename = f"{uuid.uuid4().hex[:10]}_{file.filename.replace(' ', '_')}"
-    file_location = os.path.join(UPLOAD_DIR, unique_filename)
-    with open(file_location, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    file_url = f"/uploads/{unique_filename}"
+    file_url = upload_file_to_storage(file.file, unique_filename, content_type=file.content_type or "application/octet-stream")
     return {
         "filename": unique_filename,
         "original_name": file.filename,
@@ -234,11 +234,8 @@ async def update_employee_avatar(emp_id: str, file: UploadFile = File(...), db: 
         raise HTTPException(status_code=404, detail="Employee not found")
     
     unique_filename = f"avatar_{emp_id}_{uuid.uuid4().hex[:6]}_{file.filename.replace(' ', '_')}"
-    file_location = os.path.join(UPLOAD_DIR, unique_filename)
-    with open(file_location, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    avatar_url = upload_file_to_storage(file.file, unique_filename, content_type=file.content_type or "image/jpeg")
     
-    avatar_url = f"/uploads/{unique_filename}"
     employee.avatar_url = avatar_url
     db.commit()
     db.refresh(employee)
