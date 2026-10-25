@@ -26,6 +26,8 @@ ENV/
 backend/__pycache__/
 backend/.env
 frontend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep
 
 # Editor directories and files
 .vscode/*
