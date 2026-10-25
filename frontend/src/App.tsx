@@ -44,6 +44,8 @@ import {
   TrendingUp,
   Award,
   CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
   Zap,
   Activity
 } from 'lucide-react';
@@ -96,6 +98,15 @@ export default function App() {
     education?: string | null;
   }>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [toast, setToast] = useState<{ id: number; message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    const id = Date.now();
+    setToast({ id, message, type });
+    setTimeout(() => {
+      setToast(prev => (prev?.id === id ? null : prev));
+    }, 4000);
+  };
 
   // Form State for Step 1: Basic Details
   const [basicDetails, setBasicDetails] = useState({
@@ -284,14 +295,14 @@ export default function App() {
       
       const res = await fetch(`/api/employees?${params.toString()}`);
       if (!res.ok) {
-        alert('Failed to fetch employee records for export');
+        showToast('Failed to fetch employee records for export', 'error');
         return;
       }
       const data = await res.json();
       const records: any[] = Array.isArray(data) ? data : (data.items || []);
 
       if (records.length === 0) {
-        alert('No employee records found to export.');
+        showToast('No employee records found to export.', 'info');
         return;
       }
 
@@ -303,7 +314,7 @@ export default function App() {
       });
 
       if (toExport.length === 0) {
-        alert('No records match the active location / role filters.');
+        showToast('No records match the active location / role filters.', 'info');
         return;
       }
 
@@ -419,7 +430,7 @@ export default function App() {
 
       if (res.ok) {
         const data = await res.json();
-        alert(data.message || `${selectedLeaves.length} employee(s) deleted successfully!`);
+        showToast(data.message || `${selectedLeaves.length} employee(s) deleted successfully!`, 'success');
         if (selectedEmployee && selectedLeaves.includes(selectedEmployee.id)) {
           setSelectedEmployee(null);
         }
@@ -427,11 +438,11 @@ export default function App() {
         await fetchEmployees();
         await fetchStats();
       } else {
-        alert('Failed to delete selected employees');
+        showToast('Failed to delete selected employees', 'error');
       }
     } catch (err) {
       console.error('Bulk delete error:', err);
-      alert('Failed to connect to backend for bulk deletion');
+      showToast('Failed to connect to backend for bulk deletion', 'error');
     }
   };
 
@@ -1495,14 +1506,14 @@ export default function App() {
                                             try {
                                               const res = await fetch(`/api/employees/${row.id}`, { method: 'DELETE' });
                                               if (res.ok) {
-                                                alert(`Employee ${row.name} deleted successfully from PostgreSQL!`);
+                                                showToast(`Employee ${row.name} deleted successfully!`, 'success');
                                                 fetchEmployees();
                                               } else {
-                                                alert('Failed to delete employee');
+                                                showToast('Failed to delete employee', 'error');
                                               }
                                             } catch (err) {
                                               console.error('Delete error:', err);
-                                              alert('Could not connect to backend to delete employee');
+                                              showToast('Could not connect to backend to delete employee', 'error');
                                             }
                                           }
                                         }}
@@ -1609,15 +1620,15 @@ export default function App() {
                           try {
                             const res = await fetch(`/api/employees/${selectedEmployee.id}`, { method: 'DELETE' });
                             if (res.ok) {
-                              alert(`Employee ${selectedEmployee.name} deleted successfully!`);
+                              showToast(`Employee ${selectedEmployee.name} deleted successfully!`, 'success');
                               setSelectedEmployee(null);
                               fetchEmployees();
                             } else {
-                              alert('Failed to delete employee');
+                              showToast('Failed to delete employee', 'error');
                             }
                           } catch (err) {
                             console.error('Delete error:', err);
-                            alert('Could not connect to backend to delete employee');
+                            showToast('Could not connect to backend to delete employee', 'error');
                           }
                         }
                       }}
@@ -3600,7 +3611,7 @@ export default function App() {
                           if (isSubmitting) return;
 
                           if (!basicDetails.firstName?.trim() || !basicDetails.lastName?.trim() || !basicDetails.emailAddress?.trim()) {
-                            alert('Please fill in required fields (First Name, Last Name, Email).');
+                            showToast('Please fill in required fields (First Name, Last Name, Email).', 'error');
                             return;
                           }
 
@@ -3734,12 +3745,12 @@ export default function App() {
 
                               if (!res.ok) {
                                 const errData = await res.json().catch(() => ({}));
-                                alert(errData.detail || 'Failed to update employee');
+                                showToast(errData.detail || 'Failed to update employee', 'error');
                                 return;
                               }
 
                               const updated = await res.json();
-                              alert(`Employee ${updated.first_name} ${updated.last_name} (${updated.employee_id}) updated successfully!`);
+                              showToast(`Employee ${updated.first_name} ${updated.last_name} (${updated.employee_id}) updated successfully!`, 'success');
                             } else {
                               const res = await fetch('/api/employees', {
                                 method: 'POST',
@@ -3749,12 +3760,12 @@ export default function App() {
 
                               if (!res.ok) {
                                 const errData = await res.json().catch(() => ({}));
-                                alert(errData.detail || 'Failed to register employee');
+                                showToast(errData.detail || 'Failed to register employee', 'error');
                                 return;
                               }
 
                               const saved = await res.json();
-                              alert(`Employee ${saved.first_name} ${saved.last_name} (${saved.employee_id}) registered successfully!`);
+                              showToast(`Employee ${saved.first_name} ${saved.last_name} (${saved.employee_id}) registered successfully!`, 'success');
                             }
 
                             // Refresh table and stats
@@ -3776,7 +3787,7 @@ export default function App() {
                             setViewDocUrls({});
                           } catch (err) {
                             console.error('Error submitting employee:', err);
-                            alert('Failed to connect to backend API');
+                            showToast('Failed to connect to backend API', 'error');
                           } finally {
                             setIsSubmitting(false);
                           }
@@ -3805,6 +3816,32 @@ export default function App() {
           </main>
         )}
       </div>
+
+      {/* MODERN FLOATING TOAST NOTIFICATION (Replaces browser alert prompts) */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 fade-in duration-200">
+          <div
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-xs font-semibold backdrop-blur-md transition-all ${
+              toast.type === 'success'
+                ? 'bg-emerald-500/95 text-white border-emerald-600/30 shadow-emerald-500/20'
+                : toast.type === 'error'
+                ? 'bg-rose-500/95 text-white border-rose-600/30 shadow-rose-500/20'
+                : 'bg-slate-800/95 text-white border-slate-700/50 shadow-slate-900/30'
+            }`}
+          >
+            {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-white" />}
+            {toast.type === 'error' && <AlertCircle className="w-4 h-4 shrink-0 text-white" />}
+            {toast.type === 'info' && <AlertTriangle className="w-4 h-4 shrink-0 text-amber-300" />}
+            <span className="max-w-xs">{toast.message}</span>
+            <button
+              onClick={() => setToast(null)}
+              className="ml-2 p-0.5 rounded-md hover:bg-white/20 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
