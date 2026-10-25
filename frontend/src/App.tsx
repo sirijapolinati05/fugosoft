@@ -834,9 +834,8 @@ export default function App() {
 
           {/* Right Profile & Alert */}
           <div className="flex items-center gap-3 sm:gap-5">
-            <button className="relative text-slate-600 hover:text-slate-900 transition-colors cursor-pointer p-1">
+            <button className="relative text-slate-600 hover:text-slate-900 transition-colors cursor-pointer p-1" title="Notifications">
               <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[1.8]" />
-              <span className="absolute 0.5 sm:-top-0.5 right-0.5 sm:-right-0.5 w-2 sm:w-2.5 h-2 sm:h-2.5 bg-[#f26522] rounded-full border-2 border-white"></span>
             </button>
 
             <div className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none">
