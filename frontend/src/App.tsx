@@ -1943,7 +1943,7 @@ export default function App() {
           );
         })() : (
           /* VIEW 2: NEW EMPLOYEE REGISTRATION FORM FLOW */
-          <main className="flex-1 px-10 py-5 flex flex-col justify-between max-w-5xl w-full overflow-y-auto">
+          <main className="flex-1 px-10 py-5 pb-16 flex flex-col justify-between max-w-5xl w-full overflow-y-auto">
             <div>
               {/* Back to Leave Management / Employees Link */}
               <div
@@ -2316,8 +2316,8 @@ export default function App() {
 
               {currentStep === 2 && (
                 /* Step 2: Job Details */
-                <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-hidden transition-all duration-300">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500" />
+                <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-visible transition-all duration-300 pb-44 mb-6">
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500 rounded-t-2xl" />
 
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
@@ -2456,6 +2456,7 @@ export default function App() {
                         onChange={(val) => handleJobChange('workLocation', val)}
                         placeholder="Select location"
                         icon={MapPin}
+                        placement="bottom"
                         options={[
                           { value: 'Bangalore', label: 'Bangalore' },
                           { value: 'Hyderabad', label: 'Hyderabad' },
