@@ -1645,7 +1645,7 @@ export default function App() {
                   onClick={() => setSelectedEmployee(null)}
                   className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 lg:hidden animate-in fade-in duration-200"
                 />
-                <div className="fixed inset-x-3 bottom-3 top-16 sm:inset-auto sm:right-4 sm:top-18 sm:bottom-4 sm:w-[380px] lg:static lg:inset-auto lg:w-[380px] z-50 lg:z-auto shrink-0 bg-white border border-slate-200/90 rounded-2xl shadow-2xl lg:shadow-md flex flex-col overflow-hidden animate-in fade-in duration-150 lg:sticky lg:top-4 max-h-[calc(100vh-80px)] lg:max-h-[calc(100vh-100px)]">
+                <div className="fixed inset-x-3 top-16 sm:inset-auto sm:right-4 sm:top-18 sm:bottom-4 sm:w-[380px] lg:static lg:inset-auto lg:w-[380px] z-50 lg:z-auto shrink-0 bg-white border border-slate-200/90 rounded-2xl shadow-2xl lg:shadow-md flex flex-col overflow-hidden animate-in fade-in duration-150 lg:sticky lg:top-4 max-h-[calc(100vh-80px)] lg:max-h-[calc(100vh-100px)]">
                   {/* Compact Card Header */}
                   <div className="bg-[#1a334e] text-white px-4 py-3 relative shrink-0">
                     <div className="flex items-center justify-end gap-1.5 mb-1">
