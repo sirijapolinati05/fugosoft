@@ -458,19 +458,23 @@ def send_otp_email(recipient_email: str, recipient_name: str, otp_code: str) -> 
     </html>
     """
 
+    clean_user = smtp_user.strip()
+    clean_password = smtp_password.replace(" ", "").strip()
+    clean_from = smtp_from.strip()
+
     # If SMTP is configured with real credentials, send via SMTP
-    if smtp_user and smtp_password:
+    if clean_user and clean_password:
         try:
             msg = MIMEMultipart("alternative")
             msg["Subject"] = f"Your Password Reset Code: {otp_code} - Manufac Industries"
-            msg["From"] = f"Manufac Support <{smtp_from}>"
+            msg["From"] = f"Manufac Support <{clean_from}>"
             msg["To"] = recipient_email
             msg.attach(MIMEText(html_content, "html"))
 
             with smtplib.SMTP(smtp_host, smtp_port, timeout=10) as server:
                 server.starttls()
-                server.login(smtp_user, smtp_password)
-                server.sendmail(smtp_from, recipient_email, msg.as_string())
+                server.login(clean_user, clean_password)
+                server.sendmail(clean_from, recipient_email, msg.as_string())
             print(f"[SMTP] Reset OTP sent successfully to {recipient_email}")
             return True
         except Exception as e:
