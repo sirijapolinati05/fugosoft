@@ -249,9 +249,14 @@ def update_employee(emp_id: str, updates: EmployeeUpdate, db: Session = Depends(
     for field, val in update_data.items():
         setattr(employee, field, val)
     
-    db.commit()
-    db.refresh(employee)
-    return employee
+    try:
+        db.commit()
+        db.refresh(employee)
+        return employee
+    except Exception as e:
+        db.rollback()
+        print(f"[Error updating employee {emp_id}]: {e}")
+        raise HTTPException(status_code=500, detail=f"Database update error: {str(e)}")
 
 @app.delete("/api/employees/{emp_id}")
 def delete_employee(emp_id: str, db: Session = Depends(get_db)):
@@ -291,7 +296,14 @@ async def upload_document(file: UploadFile = File(...)):
     }
 
 @app.post("/api/employees/{emp_id}/avatar")
+@app.put("/api/employees/{emp_id}/avatar")
+@app.patch("/api/employees/{emp_id}/avatar")
 async def update_employee_avatar(emp_id: str, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    try:
+        from storage import upload_file_to_storage
+    except ImportError:
+        from .storage import upload_file_to_storage
+
     employee = db.query(EmployeeModel).filter(EmployeeModel.employee_id == emp_id).first()
     if not employee:
         raise HTTPException(status_code=404, detail="Employee not found")
@@ -302,7 +314,13 @@ async def update_employee_avatar(emp_id: str, file: UploadFile = File(...), db: 
     employee.avatar_url = avatar_url
     db.commit()
     db.refresh(employee)
-    return {"message": "Avatar updated successfully", "avatar_url": avatar_url}
+    return {
+        "message": "Avatar updated successfully",
+        "avatar_url": avatar_url,
+        "employee_id": employee.employee_id,
+        "first_name": employee.first_name,
+        "last_name": employee.last_name
+    }
 
 @app.get("/api/documents/view/{filename}")
 def view_document_by_filename(filename: str):

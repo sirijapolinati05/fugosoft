@@ -18,11 +18,11 @@
 .animate-progress-glow {
   background: linear-gradient(
     90deg,
-    #e45809 0%,
-    #f97316 25%,
-    #ffedd5 50%,
-    #f97316 75%,
-    #e45809 100%
+    #025ecc 0%,
+    #2563eb 25%,
+    #dbeafe 50%,
+    #2563eb 75%,
+    #025ecc 100%
   );
   background-size: 200% 100%;
   animation: progress-shimmer 2.5s infinite linear;

@@ -14,7 +14,7 @@ class EmployeeModel(Base):
     # Basic Details
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
-    avatar_url = Column(String(255), nullable=True)
+    avatar_url = Column(Text, nullable=True)
     date_of_birth = Column(String(50), nullable=True)
     gender = Column(String(20), nullable=True)
     email = Column(String(150), unique=True, index=True, nullable=False)
@@ -48,10 +48,10 @@ class EmployeeModel(Base):
     branch_name = Column(String(100), nullable=True)
     
     # Documents filenames
-    aadhaar_file = Column(String(255), nullable=True)
-    pan_file = Column(String(255), nullable=True)
-    experience_file = Column(String(255), nullable=True)
-    education_file = Column(String(255), nullable=True)
+    aadhaar_file = Column(Text, nullable=True)
+    pan_file = Column(Text, nullable=True)
+    experience_file = Column(Text, nullable=True)
+    education_file = Column(Text, nullable=True)
     
     status = Column(String(30), default="Active")
     created_at = Column(DateTime, default=datetime.utcnow)

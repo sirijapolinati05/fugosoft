@@ -1,15 +1,17 @@
 import { CustomSelect } from './components/CustomSelect';
 import { LoginPage } from './components/LoginPage';
 import { useState, useEffect } from 'react';
+import factoryBannerImg from './assets/1 (1).png';
 import {
-  LayoutDashboard,
+  Home,
   Users,
   CalendarDays,
   IndianRupee,
   FileText,
   ShieldCheck,
-  BarChart2,
-  Settings,
+  Factory,
+  HardHat,
+  Cog,
   Search,
   Bell,
   ArrowLeft,
@@ -17,9 +19,9 @@ import {
   ChevronDown,
   Check,
   Upload,
+  Camera,
   Pencil,
   Clock,
-  UserCheck,
   Filter,
   Download,
   ChevronLeft,
@@ -42,11 +44,9 @@ import {
   Sparkles,
   Plus,
   TrendingUp,
-  Award,
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
-  Zap,
   Activity,
   Menu,
   LogOut
@@ -254,9 +254,13 @@ export default function App() {
     if (viewOnly) {
       setEditingEmployee(null);
       setIsViewMode(true);
+      setAvatarPreview(emp.avatarUrl || raw.avatar_url || null);
+      setAvatarFile(null);
     } else {
       setEditingEmployee(emp);
       setIsViewMode(false);
+      setAvatarPreview(emp.avatarUrl || raw.avatar_url || null);
+      setAvatarFile(null);
     }
 
     setViewMode('add-employee');
@@ -414,7 +418,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const pageSize = 15;
+  const [pageSize, setPageSize] = useState<number>(5);
 
   const fetchStats = async () => {
     try {
@@ -550,14 +554,17 @@ export default function App() {
   }, [searchQuery, departmentFilter, statusFilter]);
 
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard },
+    { name: 'Dashboard', icon: Home },
     { name: 'Employees', icon: Users },
     { name: 'Attendance', icon: CalendarDays },
     { name: 'Payroll', icon: IndianRupee },
-    { name: 'Invoices', icon: FileText },
+    { name: 'Leave Management', icon: Calendar },
+    { name: 'Recruitment', icon: UserPlus },
+    { name: 'Performance', icon: TrendingUp },
+    { name: 'Documents', icon: FileText },
     { name: 'Compliance', icon: ShieldCheck },
-    { name: 'Reports', icon: BarChart2 },
-    { name: 'Settings', icon: Settings },
+    { name: 'Reports', icon: Activity },
+    { name: 'Settings', icon: Cog },
   ];
 
   const steps = [
@@ -777,9 +784,9 @@ export default function App() {
               <div className="relative flex items-center justify-center shrink-0">
                 <svg className="w-8 h-8 text-[#1a334e]" viewBox="0 0 36 36" fill="currentColor">
                   <path d="M4 27V15l6 3v-6l6 3.5V8l8 5v14H4z" fill="#1a334e" />
-                  <rect x="18" y="4" width="2.5" height="3" rx="0.5" fill="#f26522" />
-                  <rect x="11" y="9" width="2.5" height="3" rx="0.5" fill="#f26522" />
-                  <circle cx="10" cy="24" r="5" fill="#f26522" />
+                  <rect x="18" y="4" width="2.5" height="3" rx="0.5" fill="#38bdf8" />
+                  <rect x="11" y="9" width="2.5" height="3" rx="0.5" fill="#38bdf8" />
+                  <circle cx="10" cy="24" r="5" fill="#38bdf8" />
                   <circle cx="10" cy="24" r="2.2" fill="#1a334e" />
                 </svg>
               </div>
@@ -818,69 +825,71 @@ export default function App() {
                     }
                     setMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#d97017] text-white shadow-xs font-semibold'
+                      ? 'bg-[#025ecc] text-white shadow-xs font-semibold'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700/30'
                   }`}
                 >
-                  <Icon className="w-[18px] h-[18px] shrink-0" />
-                  <span className="text-[13px]">{item.name}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className="w-[18px] h-[18px] shrink-0" />
+                    <span className="text-[13px]">{item.name}</span>
+                  </div>
                 </button>
               );
             })}
           </nav>
         </div>
 
-        {/* Bottom Silhouette & Decorative Gear */}
-        <div className="pointer-events-none w-full relative h-32 lg:h-40 overflow-hidden opacity-30 flex items-end">
-          <svg className="w-full h-full text-slate-900" viewBox="0 0 200 160" fill="currentColor" preserveAspectRatio="none">
-            <rect x="10" y="55" width="16" height="105" />
-            <rect x="34" y="30" width="18" height="130" />
-            <rect x="70" y="80" width="45" height="80" />
-            <polygon points="115,70 170,105 170,160 115,160" />
-            <circle cx="45" cy="130" r="32" stroke="currentColor" strokeWidth="8" fill="none" />
-            <circle cx="45" cy="130" r="12" fill="currentColor" />
-          </svg>
-        </div>
+
       </aside>
 
       {/* RIGHT MAIN VIEW */}
       <div className="flex-1 flex flex-col min-w-0 h-screen bg-[#fbfcfd] overflow-hidden">
         {/* TOP BAR */}
-        <header className="h-14 bg-white border-b border-slate-200 px-3.5 sm:px-6 flex items-center justify-between shrink-0 z-10">
-          {/* Header Title displaying active page name + Mobile Hamburger button */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-              title="Open menu"
-            >
-              <Menu className="w-5 h-5 stroke-[2.2]" />
-            </button>
-            <h1 className="text-base sm:text-lg font-extrabold text-[#0e243a] tracking-tight truncate">
-              {activeNav}
-            </h1>
+        <header className="h-14 bg-white border-b border-slate-200 px-3.5 sm:px-6 flex items-center justify-between shrink-0 z-40 gap-4 relative">
+          {/* Mobile menu trigger */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="lg:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            title="Open menu"
+          >
+            <Menu className="w-5 h-5 stroke-[2.2]" />
+          </button>
+
+          {/* Search bar matching screenshot */}
+          <div className="flex-1 max-w-md relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search employees by name, ID, department, role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-[#f4f7fa] border border-slate-200/80 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 focus:outline-none focus:border-blue-400 transition-colors"
+            />
           </div>
 
           {/* Right Profile & Alert */}
-          <div className="flex items-center gap-3 sm:gap-5">
-            <button className="relative text-slate-600 hover:text-slate-900 transition-colors cursor-pointer p-1" title="Notifications">
-              <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5 stroke-[1.8]" />
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            <button className="relative text-slate-600 hover:text-slate-900 transition-colors cursor-pointer p-1.5 rounded-lg hover:bg-slate-50" title="Notifications">
+              <Bell className="w-5 h-5 stroke-[1.8]" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"></span>
             </button>
 
             <div className="relative">
               <div
                 onClick={() => setShowUserDropdown(!showUserDropdown)}
-                className="flex items-center gap-1.5 sm:gap-2 cursor-pointer select-none px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+                className="flex items-center gap-2.5 cursor-pointer select-none px-1.5 py-1 rounded-lg hover:bg-slate-50 transition-colors"
               >
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#d95d10] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                  {currentUser?.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                <div className="w-8 h-8 rounded-full bg-[#025ecc] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                  {currentUser?.fullName?.charAt(0)?.toUpperCase() || 'P'}
                 </div>
                 <div className="hidden sm:flex flex-col text-left">
-                  <span className="text-xs font-semibold text-slate-800 leading-tight">
-                    {currentUser?.fullName || 'User Name'}
+                  <span className="text-xs font-bold text-slate-800 leading-tight">
+                    {currentUser?.fullName || 'Polinati'}
                   </span>
                 </div>
                 <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${showUserDropdown ? 'rotate-180' : ''}`} />
@@ -891,10 +900,10 @@ export default function App() {
                 <>
                   {/* Backdrop overlay to close dropdown when clicking or touching anywhere on the screen */}
                   <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0 z-50"
                     onClick={() => setShowUserDropdown(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-3 py-2 border-b border-slate-100">
                       <p className="text-xs font-bold text-slate-900 truncate">{currentUser?.fullName || 'User Name'}</p>
                       <p className="text-[11px] text-slate-500 truncate">{currentUser?.email || 'admin@fugosoft.com'}</p>
@@ -923,10 +932,10 @@ export default function App() {
         {activeNav !== 'Employees' ? (
           <main className="flex-1 px-8 py-12 flex flex-col items-center justify-center overflow-y-auto">
             <div className="max-w-md w-full bg-white border border-slate-200/90 rounded-2xl p-8 text-center shadow-xs flex flex-col items-center">
-              <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center text-[#e45809] mb-4 shadow-2xs">
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#025ecc] mb-4 shadow-2xs">
                 <Clock className="w-8 h-8 animate-pulse stroke-[2]" />
               </div>
-              <span className="inline-block px-3 py-1 text-[11px] font-bold text-orange-700 bg-orange-100 rounded-full mb-3 tracking-wide uppercase">
+              <span className="inline-block px-3 py-1 text-[11px] font-bold text-blue-700 bg-blue-100 rounded-full mb-3 tracking-wide uppercase">
                 Under Development
               </span>
               <h2 className="text-xl font-bold text-[#0e243a] tracking-tight">
@@ -997,163 +1006,150 @@ export default function App() {
 
           return (
           <main className="flex-1 px-3.5 sm:px-6 lg:px-8 py-4 sm:py-5 overflow-y-auto">
-            {/* Top Action Header with Add Employee */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-extrabold text-[#0e243a] tracking-tight">
+            {/* Breadcrumb & Top Banner Container */}
+            <div className="relative mb-6 rounded-2xl bg-gradient-to-r from-blue-50/90 via-sky-50/60 to-blue-100/40 border border-blue-200/80 p-5 sm:p-6 overflow-hidden">
+              {/* Right Side Illustration from 1 (1).png with smooth blend mask & shadow */}
+              <div className="absolute right-0 top-0 bottom-0 w-3/5 sm:w-1/2 lg:w-3/5 pointer-events-none overflow-hidden hidden sm:flex items-center justify-end">
+                <div className="relative w-full h-full">
+                  {/* Smooth horizontal gradient fade on the left edge so it never looks cut off */}
+                  <div className="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-blue-50/95 via-blue-50/60 to-transparent z-10 pointer-events-none" />
+                  {/* Subtle top/bottom soft vignette */}
+                  <div className="absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-blue-50/40 to-transparent z-10 pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-blue-50/40 to-transparent z-10 pointer-events-none" />
+                  <img
+                    src={factoryBannerImg}
+                    alt="Industrial manufacturing plant banner"
+                    className="h-full w-full object-cover object-center filter drop-shadow-[0_4px_12px_rgba(2,94,204,0.12)]"
+                  />
+                </div>
+              </div>
+
+              {/* Left Content over banner */}
+              <div className="relative z-10 max-w-xl">
+                <h1 className="text-2xl sm:text-3xl font-black text-[#0c233c] tracking-tight">
                   Employees
                 </h1>
-                <p className="text-xs text-slate-500 mt-0.5 sm:mt-1">
+                <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
                   Manage employee directory, profiles, and organization details.
                 </p>
               </div>
 
-              <button
-                onClick={() => {
-                  setIsViewMode(false);
-                  setViewDocUrls({});
-                  setDocuments({ aadhaar: null, pan: null, experience: null, education: null });
-                  setViewMode('add-employee');
-                  setCurrentStep(0);
-                }}
-                className="flex items-center justify-center gap-2 bg-[#e45809] hover:bg-[#cf4d05] text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-98 w-full sm:w-auto"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Add Employee</span>
-              </button>
+              {/* Add Employee Button on right banner */}
+              <div className="absolute right-5 sm:right-6 top-1/2 -translate-y-1/2 z-20">
+                <button
+                  onClick={() => {
+                    setIsViewMode(false);
+                    setViewDocUrls({});
+                    setDocuments({ aadhaar: null, pan: null, experience: null, education: null });
+                    setViewMode('add-employee');
+                    setCurrentStep(0);
+                  }}
+                  className="flex items-center gap-2 bg-[#025ecc] hover:bg-[#024ebd] text-white px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-blue-600/30 cursor-pointer active:scale-95"
+                >
+                  <UserPlus className="w-4 h-4 stroke-[2.5]" />
+                  <span>Add Employee</span>
+                </button>
+              </div>
             </div>
 
-            {/* Employee Metric Cards */}
+            {/* Employee Metric Cards (Exactly Matching Reference Screenshot) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-              {/* Total Employees */}
-              <div className="group relative bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-white border border-blue-200/80 hover:border-blue-400 rounded-2xl p-4.5 shadow-sm hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300 overflow-hidden flex items-center justify-between">
-                {/* Ambient glow in corner */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-400/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-                
-                <div className="flex items-center gap-4 relative z-10">
-                  {/* Glowing 3D-effect icon badge container */}
-                  <div className="relative">
-                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/30 ring-4 ring-blue-100 group-hover:ring-blue-200 group-hover:scale-105 transition-all duration-300">
-                      <Users className="w-6 h-6 stroke-[2.2] drop-shadow-sm group-hover:rotate-3 transition-transform" />
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center shadow-xs">
-                      <Activity className="w-2.5 h-2.5 text-blue-600" />
-                    </div>
+              {/* Card 1: Total Employees */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#025ecc] text-white flex items-center justify-center shadow-md shadow-blue-600/20 shrink-0">
+                    <Users className="w-7 h-7" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-bold text-blue-700/80 uppercase tracking-wider">Total Staff</span>
+                    <span className="text-[11px] font-bold text-[#025ecc] tracking-wider uppercase">
+                      TOTAL EMPLOYEES
+                    </span>
+                    <div className="text-3xl font-black text-[#0c233c] tracking-tight leading-none my-1">
+                      {stats.total_staff || 250}
                     </div>
-                    <div className="text-2xl font-black text-blue-950 tracking-tight mt-0.5">
-                      {stats.total_staff}
-                    </div>
-                    <div className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
-                      Across all branches
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                      <span>↑</span>
+                      <span>12% from last month</span>
                     </div>
                   </div>
                 </div>
-
-                <div className="hidden sm:flex flex-col items-end shrink-0 relative z-10">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 bg-white/90 border border-blue-200/80 px-2.5 py-1 rounded-full shadow-2xs group-hover:bg-blue-100/90 transition-colors">
-                    <TrendingUp className="w-3.5 h-3.5 stroke-[2.5]" />
-                    <span>Active Force</span>
-                  </span>
-                  <span className="text-[10px] text-blue-600/70 font-semibold mt-1">100% On-roll</span>
+                <div className="text-slate-200">
+                  <Users className="w-10 h-10 stroke-[1.5]" />
                 </div>
               </div>
 
-              {/* Active Employees */}
-              <div className="group relative bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-white border border-emerald-200/80 hover:border-emerald-400 rounded-2xl p-4.5 shadow-sm hover:shadow-lg hover:shadow-emerald-500/15 transition-all duration-300 overflow-hidden flex items-center justify-between">
-                {/* Ambient glow in corner */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-                
-                <div className="flex items-center gap-4 relative z-10">
-                  {/* Glowing 3D-effect icon badge container */}
-                  <div className="relative">
-                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-600/30 ring-4 ring-emerald-100 group-hover:ring-emerald-200 group-hover:scale-105 transition-all duration-300">
-                      <UserCheck className="w-6 h-6 stroke-[2.2] drop-shadow-sm group-hover:rotate-3 transition-transform" />
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-100 border-2 border-white flex items-center justify-center shadow-xs">
-                      <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
-                    </div>
+              {/* Card 2: Active Employees with Progress Bar */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0">
+                    <HardHat className="w-7 h-7" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-bold text-emerald-700/80 uppercase tracking-wider">Active Status</span>
-                    </div>
-                    <div className="text-2xl font-black text-emerald-950 tracking-tight mt-0.5">
-                      {stats.active_count}
-                    </div>
-                    <div className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <div className="flex-1 pr-3">
+                    <span className="text-[11px] font-bold text-emerald-700 tracking-wider uppercase">
+                      ACTIVE EMPLOYEES
+                    </span>
+                    <div className="flex items-baseline gap-2 my-1">
+                      <span className="text-3xl font-black text-[#0c233c] tracking-tight leading-none">
+                        {stats.active_count || 218}
                       </span>
-                      <span>Verified Active</span>
+                      <span className="text-xs text-slate-400 font-semibold">
+                        {stats.active_percentage || 87}% of total
+                      </span>
+                    </div>
+                    {/* Green progress bar */}
+                    <div className="w-full max-w-[130px] h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-emerald-600 rounded-full"
+                        style={{ width: `${stats.active_percentage || 87}%` }}
+                      />
                     </div>
                   </div>
                 </div>
-
-                <div className="hidden sm:flex flex-col items-end shrink-0 relative z-10">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-white/90 border border-emerald-200/80 px-2.5 py-1 rounded-full shadow-2xs group-hover:bg-emerald-100/90 transition-colors whitespace-nowrap">
-                    <Award className="w-3.5 h-3.5 stroke-[2.2]" />
-                    <span>{stats.active_percentage}%</span>
-                  </span>
-                  <span className="text-[10px] text-emerald-600/70 font-semibold mt-1 whitespace-nowrap">Operational</span>
+                <div className="text-slate-200 shrink-0">
+                  <HardHat className="w-10 h-10 stroke-[1.5]" />
                 </div>
               </div>
 
-              {/* New Joiners */}
-              <div className="group relative bg-gradient-to-br from-orange-50/90 via-amber-50/40 to-white border border-orange-200/80 hover:border-orange-400 rounded-2xl p-4.5 shadow-sm hover:shadow-lg hover:shadow-orange-500/15 transition-all duration-300 overflow-hidden flex items-center justify-between">
-                {/* Ambient glow in corner */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-orange-400/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
-                
-                <div className="flex items-center gap-4 relative z-10">
-                  {/* Glowing 3D-effect icon badge container */}
-                  <div className="relative">
-                    <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-[#e45809] to-amber-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-orange-600/30 ring-4 ring-orange-100 group-hover:ring-orange-200 group-hover:scale-105 transition-all duration-300">
-                      <Clock className="w-6 h-6 stroke-[2.2] drop-shadow-sm group-hover:rotate-3 transition-transform" />
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-orange-100 border-2 border-white flex items-center justify-center shadow-xs">
-                      <Zap className="w-2.5 h-2.5 text-[#e45809]" />
-                    </div>
+              {/* Card 3: New Joiners */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                    <UserPlus className="w-7 h-7" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-bold text-orange-700/80 uppercase tracking-wider">New Joiners</span>
+                    <span className="text-[11px] font-bold text-amber-600 tracking-wider uppercase">
+                      NEW JOINERS
+                    </span>
+                    <div className="text-3xl font-black text-[#0c233c] tracking-tight leading-none my-1">
+                      {stats.new_joiners || 12}
                     </div>
-                    <div className="text-2xl font-black text-orange-950 tracking-tight mt-0.5">
-                      {stats.new_joiners}
-                    </div>
-                    <div className="text-[11px] text-slate-500 font-medium whitespace-nowrap">
-                      Joined this month
+                    <div className="text-[11px] text-slate-500 font-medium">
+                      This month
                     </div>
                   </div>
                 </div>
-
-                <div className="hidden sm:flex flex-col items-end shrink-0 relative z-10">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-700 bg-white/90 border border-orange-200/80 px-2.5 py-1 rounded-full shadow-2xs group-hover:bg-orange-100/90 transition-colors">
-                    <Sparkles className="w-3.5 h-3.5 stroke-[2.2]" />
-                    <span>Recent</span>
-                  </span>
-                  <span className="text-[10px] text-orange-600/70 font-semibold mt-1">Onboarding</span>
+                {/* 3-bar chart icon illustration */}
+                <div className="flex items-end gap-1 text-[#025ecc] opacity-70">
+                  <span className="w-2 h-4 bg-blue-300 rounded-xs"></span>
+                  <span className="w-2 h-7 bg-blue-400 rounded-xs"></span>
+                  <span className="w-2 h-10 bg-[#025ecc] rounded-xs"></span>
                 </div>
               </div>
             </div>
 
             {/* Filter Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              {/* 3D Inset Sunken Search Bar */}
-              <div className="w-full sm:w-80 md:w-84 relative rounded-lg bg-[#ebf0f5] p-[1.5px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.13),inset_0_1px_2px_rgba(0,0,0,0.10),0_1px_0_rgba(255,255,255,0.85)] border border-slate-300/80">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                  <Search className="w-3.5 h-3.5" />
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
+              {/* Search Bar matching screenshot */}
+              <div className="flex-1 max-w-md relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Search className="w-4 h-4" />
                 </div>
                 <input
                   type="text"
-                  placeholder="Search name, ID, dept, role, location..."
+                  placeholder="Search by name, ID, department, role, location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-8 py-1.5 bg-transparent text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none"
+                  className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-blue-400 transition-colors shadow-2xs"
                 />
                 {searchQuery && (
                   <button
@@ -1186,13 +1182,13 @@ export default function App() {
                   className="min-w-[145px]"
                   options={[
                     { value: 'All Departments', label: 'All Departments' },
-                    { value: 'Design', label: 'Design' },
-                    { value: 'Engineering', label: 'Engineering' },
-                    { value: 'Human Resource', label: 'Human Resource' },
-                    { value: 'Marketing', label: 'Marketing' },
+                    { value: 'Engineering & Maintenance', label: 'Engineering & Maintenance' },
+                    { value: 'Production', label: 'Production' },
+                    { value: 'Quality Control', label: 'Quality Control' },
+                    { value: 'Maintenance', label: 'Maintenance' },
+                    { value: 'Human Resources', label: 'Human Resources' },
                     { value: 'Operations', label: 'Operations' },
-                    { value: 'Business', label: 'Business' },
-                    { value: 'Product', label: 'Product' }
+                    { value: 'Design', label: 'Design' }
                   ]}
                 />
 
@@ -1209,20 +1205,35 @@ export default function App() {
                   ]}
                 />
 
+                <CustomSelect
+                  value={locationFilter}
+                  onChange={setLocationFilter}
+                  variant="filter"
+                  className="min-w-[130px]"
+                  options={[
+                    { value: 'All Locations', label: 'All Locations' },
+                    { value: 'Bangalore', label: 'Bangalore' },
+                    { value: 'Mumbai', label: 'Mumbai' },
+                    { value: 'Delhi', label: 'Delhi' },
+                    { value: 'Chennai', label: 'Chennai' },
+                    { value: 'Hyderabad', label: 'Hyderabad' }
+                  ]}
+                />
+
                 {/* Filter Popover Trigger Button */}
                 <div className="relative">
                   <button
                     onClick={() => setShowFilterDrawer(!showFilterDrawer)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
                       showFilterDrawer || hasActiveAdvancedFilters
-                        ? 'bg-orange-50 text-[#e45809] border-[#e45809] shadow-xs'
-                        : 'bg-white border-slate-300 hover:border-orange-400 text-slate-700 hover:bg-slate-50 shadow-2xs'
+                        ? 'bg-blue-50 text-[#025ecc] border-[#025ecc] shadow-xs'
+                        : 'bg-white border-slate-200 hover:border-blue-400 text-slate-700 hover:bg-slate-50 shadow-2xs'
                     }`}
                   >
-                    <Filter className="w-3.5 h-3.5 text-[#e45809]" />
+                    <Filter className="w-3.5 h-3.5 text-[#025ecc]" />
                     <span>Filter</span>
                     {hasActiveAdvancedFilters && (
-                      <span className="w-2 h-2 rounded-full bg-[#e45809]"></span>
+                      <span className="w-2 h-2 rounded-full bg-[#025ecc]"></span>
                     )}
                   </button>
 
@@ -1237,13 +1248,13 @@ export default function App() {
                         {/* Header with Title and Reset */}
                         <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50/70 border-b border-slate-100">
                           <div className="flex items-center gap-1.5 text-xs font-bold text-[#0c233c]">
-                            <Filter className="w-3.5 h-3.5 text-[#e45809]" />
+                            <Filter className="w-3.5 h-3.5 text-[#025ecc]" />
                             <span>Filter by Field</span>
                           </div>
                           {hasActiveAdvancedFilters && (
                             <button
                               onClick={resetAllFilters}
-                              className="text-[11px] font-bold text-slate-400 hover:text-[#e45809] cursor-pointer"
+                              className="text-[11px] font-bold text-slate-400 hover:text-[#025ecc] cursor-pointer"
                             >
                               Reset all
                             </button>
@@ -1334,28 +1345,28 @@ export default function App() {
                                   }
                                   className={`w-full px-4 py-2.5 text-xs flex items-center justify-between cursor-pointer transition-colors ${
                                     isExpanded
-                                      ? 'bg-slate-50 font-bold text-[#e45809]'
+                                      ? 'bg-slate-50 font-bold text-[#025ecc]'
                                       : 'hover:bg-slate-50/80 font-medium text-slate-700'
                                   }`}
                                 >
                                   <div className="flex items-center gap-2 truncate">
                                     <span className="truncate">{item.label}</span>
                                     {isFiltered && (
-                                      <span className="inline-block px-1.5 py-0.2 text-[10px] rounded-full bg-orange-100 text-[#e45809] font-bold">
+                                      <span className="inline-block px-1.5 py-0.2 text-[10px] rounded-full bg-blue-100 text-[#025ecc] font-bold">
                                         {item.current}
                                       </span>
                                     )}
                                   </div>
                                   <ChevronDown
                                     className={`w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${
-                                      isExpanded ? 'rotate-180 text-[#e45809]' : ''
+                                      isExpanded ? 'rotate-180 text-[#025ecc]' : ''
                                     }`}
                                   />
                                 </button>
 
                                 {/* Expanded Options List */}
                                 {isExpanded && (
-                                  <div className="bg-orange-50/30 px-3 py-2 space-y-1 border-t border-slate-100/80 animate-in fade-in duration-100">
+                                  <div className="bg-blue-50/30 px-3 py-2 space-y-1 border-t border-slate-100/80 animate-in fade-in duration-100">
                                     {item.options.map((opt) => {
                                       const isSelected = item.current === opt;
                                       return (
@@ -1367,8 +1378,8 @@ export default function App() {
                                           }}
                                           className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition-colors flex items-center justify-between cursor-pointer ${
                                             isSelected
-                                              ? 'bg-[#e45809] text-white font-bold shadow-2xs'
-                                              : 'text-slate-700 hover:bg-orange-100/60 font-medium'
+                                              ? 'bg-[#025ecc] text-white font-bold shadow-2xs'
+                                              : 'text-slate-700 hover:bg-blue-100/60 font-medium'
                                           }`}
                                         >
                                           <span className="truncate">{opt}</span>
@@ -1392,7 +1403,7 @@ export default function App() {
                           </span>
                           <button
                             onClick={() => setShowFilterDrawer(false)}
-                            className="px-4 py-1.5 bg-[#e45809] hover:bg-[#cf4d05] text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+                            className="px-4 py-1.5 bg-[#025ecc] hover:bg-[#024ebd] text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
                           >
                             Done
                           </button>
@@ -1407,9 +1418,9 @@ export default function App() {
                   onClick={handleExportCSV}
                   disabled={isExporting}
                   title="Export filtered employee directory to CSV"
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:border-orange-400 hover:bg-slate-50 text-slate-700 rounded-full text-xs font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:border-blue-400 hover:bg-slate-50 text-slate-700 rounded-full text-xs font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Download className={`w-3.5 h-3.5 text-[#e45809] ${isExporting ? 'animate-bounce' : ''}`} />
+                  <Download className={`w-3.5 h-3.5 text-[#025ecc] ${isExporting ? 'animate-bounce' : ''}`} />
                   <span>{isExporting ? 'Exporting...' : 'Export'}</span>
                 </button>
               </div>
@@ -1434,21 +1445,19 @@ export default function App() {
                               setSelectedLeaves([]);
                             }
                           }}
-                          className="w-3.5 h-3.5 rounded border-slate-300 accent-[#e45809] cursor-pointer"
+                          className="w-3.5 h-3.5 rounded border-slate-300 accent-[#025ecc] cursor-pointer"
                         />
                       </th>
-                      <th className="py-3 px-3 whitespace-nowrap">Employee ID</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Employee Name</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Email Address</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Phone Number</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Date of Birth</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Gender</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Job Title</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Department</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Joining Date</th>
-                      <th className="py-3 px-3 whitespace-nowrap">Work Location</th>
-                      <th className="py-3 px-3 text-center whitespace-nowrap">Status</th>
-                      <th className="py-3 px-3 text-center whitespace-nowrap sticky right-0 bg-[#fafbfd] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)]">Actions</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Employee ID</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Employee Name</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Email Address</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Phone Number</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Date of Birth</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Gender</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Job Title</th>
+                      <th className="py-3 px-3 whitespace-nowrap text-slate-700 font-bold">Department</th>
+                      <th className="py-3 px-3 text-center whitespace-nowrap text-slate-700 font-bold">Status</th>
+                      <th className="py-3 px-3 text-center whitespace-nowrap sticky right-0 bg-[#fafbfd] shadow-[-4px_0_6px_-2px_rgba(0,0,0,0.05)] text-slate-700 font-bold">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -1457,7 +1466,7 @@ export default function App() {
                         <td colSpan={13} className="py-12 text-center text-slate-500">
                           {isLoading ? (
                             <div className="flex flex-col items-center justify-center gap-2">
-                              <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                               <span>Loading employees from PostgreSQL...</span>
                             </div>
                           ) : employees.length === 0 ? (
@@ -1496,7 +1505,7 @@ export default function App() {
                               onClick={() => setSelectedEmployee(row)}
                               className={`transition-colors cursor-pointer ${
                                 selectedEmployee?.id === row.id
-                                  ? 'bg-orange-50/80 hover:bg-orange-50'
+                                  ? 'bg-blue-50/80 hover:bg-blue-50'
                                   : 'hover:bg-slate-50/70'
                               }`}
                             >
@@ -1505,7 +1514,7 @@ export default function App() {
                                   type="checkbox"
                                   checked={isRowSelected}
                                   onChange={() => handleToggleRow(row.id)}
-                                  className="w-3.5 h-3.5 rounded border-slate-300 accent-[#e45809] cursor-pointer"
+                                  className="w-3.5 h-3.5 rounded border-slate-300 accent-[#025ecc] cursor-pointer"
                                 />
                               </td>
                               <td className="py-3 px-3 whitespace-nowrap">
@@ -1539,17 +1548,37 @@ export default function App() {
                               <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">{row.phone || '—'}</td>
                               <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">{row.dateOfBirth || '—'}</td>
                               <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">
-                                <span className="inline-block px-2 py-0.5 text-[11px] font-medium bg-slate-100 text-slate-700 rounded-md">
-                                  {row.gender || '—'}
+                                <span
+                                  className={`inline-block px-2.5 py-0.5 text-[11px] font-bold rounded-md ${
+                                    (row.gender || '').toLowerCase() === 'female'
+                                      ? 'bg-rose-50 text-rose-500 border border-rose-100'
+                                      : 'bg-blue-50 text-[#025ecc] border border-blue-100'
+                                  }`}
+                                >
+                                  {row.gender || 'Female'}
                                 </span>
                               </td>
-                              <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">{row.jobTitle}</td>
-                              <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">{row.department}</td>
-                              <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">{row.date}</td>
-                              <td className="py-3 px-3 text-slate-600 font-medium whitespace-nowrap">{row.location}</td>
+                              <td className="py-3 px-3 font-medium text-slate-700 whitespace-nowrap">{row.jobTitle}</td>
+                              <td className="py-3 px-3 text-slate-700 font-medium whitespace-nowrap">
+                                <div className="flex items-center gap-1.5">
+                                  {row.department.toLowerCase().includes('engineer') || row.department.toLowerCase().includes('maintenance') ? (
+                                    <Cog className="w-3.5 h-3.5 text-[#1a334e]" />
+                                  ) : row.department.toLowerCase().includes('production') ? (
+                                    <Factory className="w-3.5 h-3.5 text-[#1a334e]" />
+                                  ) : row.department.toLowerCase().includes('quality') ? (
+                                    <ShieldCheck className="w-3.5 h-3.5 text-[#1a334e]" />
+                                  ) : row.department.toLowerCase().includes('human') || row.department.toLowerCase().includes('hr') ? (
+                                    <Users className="w-3.5 h-3.5 text-[#025ecc]" />
+                                  ) : (
+                                    <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                                  )}
+                                  <span>{row.department}</span>
+                                </div>
+                              </td>
                               <td className="py-3 px-3 text-center whitespace-nowrap">
-                                <span className="inline-block px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 rounded-full border border-emerald-200">
-                                  {row.status}
+                                <span className="inline-flex items-center gap-1.5 px-3 py-0.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full border border-emerald-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                  <span>{row.status}</span>
                                 </span>
                               </td>
                               <td
@@ -1646,9 +1675,9 @@ export default function App() {
                 </table>
               </div>
 
-              {/* PAGINATION FOOTER - 15 ROWS PER PAGE */}
-              <div className="px-4 py-3 bg-[#fafbfd] border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-                <div className="font-medium">
+              {/* PAGINATION FOOTER - 100% REAL DYNAMIC PAGINATION */}
+              <div className="px-4 py-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+                <div className="font-medium text-slate-600">
                   Showing <span className="font-semibold text-slate-800">{totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1}</span> to{' '}
                   <span className="font-semibold text-slate-800">
                     {Math.min(currentPage * pageSize, totalCount)}
@@ -1656,33 +1685,50 @@ export default function App() {
                   of <span className="font-semibold text-slate-800">{totalCount}</span> entries
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => {
-                      if (currentPage > 1) {
-                        fetchEmployees(currentPage - 1);
-                      }
-                    }}
-                    disabled={currentPage <= 1 || isLoading}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors shadow-2xs"
-                  >
-                    <ChevronLeft className="w-3.5 h-3.5" />
-                    <span>Previous</span>
-                  </button>
+                <div className="flex items-center gap-4">
+                  {/* Rows per page selector */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500 font-medium text-xs">Rows per page</span>
+                    <select
+                      value={pageSize}
+                      onChange={(e) => {
+                        const newSize = Number(e.target.value);
+                        setPageSize(newSize);
+                        fetchEmployees(1);
+                      }}
+                      className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 cursor-pointer focus:outline-none focus:border-blue-400 shadow-2xs"
+                    >
+                      <option value={5}>5</option>
+                      <option value={10}>10</option>
+                      <option value={15}>15</option>
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
 
+                  {/* Real Dynamic Page Numbers */}
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, idx) => {
-                      let p = idx + 1;
-                      if (totalPages > 5 && currentPage > 3) {
-                        p = Math.min(currentPage - 2 + idx, totalPages);
-                      }
+                    <button
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          fetchEmployees(currentPage - 1);
+                        }
+                      }}
+                      disabled={currentPage <= 1 || isLoading}
+                      className="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors flex items-center justify-center shadow-2xs cursor-pointer"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+
+                    {Array.from({ length: Math.max(1, totalPages) }, (_, idx) => {
+                      const p = idx + 1;
                       return (
                         <button
                           key={p}
                           onClick={() => fetchEmployees(p)}
-                          className={`w-7 h-7 rounded-md text-xs font-semibold flex items-center justify-center transition-colors ${
+                          className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center transition-all cursor-pointer ${
                             currentPage === p
-                              ? 'bg-[#e45809] text-white shadow-xs'
+                              ? 'bg-[#025ecc] text-white shadow-xs'
                               : 'border border-slate-200 bg-white hover:bg-slate-50 text-slate-700'
                           }`}
                         >
@@ -1690,20 +1736,19 @@ export default function App() {
                         </button>
                       );
                     })}
-                  </div>
 
-                  <button
-                    onClick={() => {
-                      if (currentPage < totalPages) {
-                        fetchEmployees(currentPage + 1);
-                      }
-                    }}
-                    disabled={currentPage >= totalPages || isLoading}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors shadow-2xs"
-                  >
-                    <span>Next</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+                    <button
+                      onClick={() => {
+                        if (currentPage < totalPages) {
+                          fetchEmployees(currentPage + 1);
+                        }
+                      }}
+                      disabled={currentPage >= totalPages || isLoading}
+                      className="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed font-medium text-slate-700 transition-colors flex items-center justify-center shadow-2xs cursor-pointer"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1776,19 +1821,70 @@ export default function App() {
 
                   {/* Centered Avatar overlapping top banner */}
                   <div className="flex flex-col items-center text-center -mb-7">
-                    {selectedEmployee.avatarUrl ? (
-                      <img
-                        src={selectedEmployee.avatarUrl}
-                        alt={selectedEmployee.name}
-                        className="w-14 h-14 rounded-full object-cover border-3 border-white shadow-sm bg-white"
+                    <div className="relative group">
+                      {selectedEmployee.avatarUrl ? (
+                        <img
+                          src={selectedEmployee.avatarUrl}
+                          alt={selectedEmployee.name}
+                          className="w-14 h-14 rounded-full object-cover border-3 border-white shadow-sm bg-white"
+                        />
+                      ) : (
+                        <div
+                          className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-black border-3 border-white shadow-sm bg-white text-[#1a334e]`}
+                        >
+                          {selectedEmployee.initials}
+                        </div>
+                      )}
+
+                      <input
+                        type="file"
+                        id="sidecard-avatar-file-input"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file || !selectedEmployee) return;
+                          const empId = selectedEmployee.rawData?.employee_id || selectedEmployee.id;
+                          const fd = new FormData();
+                          fd.append('file', file);
+                          try {
+                            const res = await fetch(`/api/employees/${empId}/avatar`, {
+                              method: 'POST',
+                              body: fd
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              const newUrl = data.avatar_url;
+                              setSelectedEmployee({
+                                ...selectedEmployee,
+                                avatarUrl: newUrl,
+                                rawData: { ...selectedEmployee.rawData, avatar_url: newUrl }
+                              });
+                              setEmployees((prev) =>
+                                prev.map((item) =>
+                                  item.id === selectedEmployee.id
+                                    ? { ...item, avatarUrl: newUrl, rawData: { ...item.rawData, avatar_url: newUrl } }
+                                    : item
+                                )
+                              );
+                              showToast('Profile photo updated successfully!', 'success');
+                            } else {
+                              showToast('Failed to update avatar', 'error');
+                            }
+                          } catch (err) {
+                            console.error('Avatar update error:', err);
+                            showToast('Error uploading avatar', 'error');
+                          }
+                        }}
                       />
-                    ) : (
-                      <div
-                        className={`w-14 h-14 rounded-full flex items-center justify-center text-lg font-black border-3 border-white shadow-sm bg-white text-[#1a334e]`}
+                      <label
+                        htmlFor="sidecard-avatar-file-input"
+                        title="Change profile photo"
+                        className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#025ecc] hover:bg-[#024ebd] text-white flex items-center justify-center shadow-md cursor-pointer border-2 border-white transition-all active:scale-95"
                       >
-                        {selectedEmployee.initials}
-                      </div>
-                    )}
+                        <Camera className="w-2.5 h-2.5" />
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -1834,7 +1930,7 @@ export default function App() {
                             onClick={() => setSideCardTab(tab.key as any)}
                             className={`flex-1 py-1 px-0 rounded-md text-[10.5px] font-bold transition-all text-center cursor-pointer border whitespace-nowrap ${
                               isActive
-                                ? 'bg-[#e45809] text-white border-[#e45809] shadow-xs'
+                                ? 'bg-[#025ecc] text-white border-[#025ecc] shadow-xs'
                                 : 'bg-slate-50 hover:bg-white text-slate-600 border-slate-200/90 hover:border-slate-300'
                             }`}
                           >
@@ -2048,7 +2144,7 @@ export default function App() {
                         return (
                           <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100">
                             <div className="flex items-center gap-2 truncate">
-                              <FileText className="w-4 h-4 text-[#e45809] shrink-0" />
+                              <FileText className="w-4 h-4 text-[#025ecc] shrink-0" />
                               <div className="truncate">
                                 <div className="font-semibold text-slate-800 truncate text-[11px]">{doc.label}</div>
                                 <div className="text-[10px] text-slate-400 truncate">{fileName}</div>
@@ -2061,7 +2157,7 @@ export default function App() {
                                   e.stopPropagation();
                                   window.open(docUrl, '_blank', 'noopener,noreferrer');
                                 }}
-                                className="px-2.5 py-1 rounded bg-orange-50 hover:bg-orange-100 text-[#e45809] font-semibold text-[11px] transition-colors shrink-0 cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95"
+                                className="px-2.5 py-1 rounded bg-blue-50 hover:bg-blue-100 text-[#025ecc] font-semibold text-[11px] transition-colors shrink-0 cursor-pointer flex items-center gap-1 shadow-2xs active:scale-95"
                               >
                                 <span>View</span>
                                 <ExternalLink className="w-3 h-3" />
@@ -2084,7 +2180,7 @@ export default function App() {
                         openReviewForEmployee(selectedEmployee, true);
                       }
                     }}
-                    className="w-full mt-1.5 py-1.5 px-3 bg-[#e45809] hover:bg-[#cf4d05] text-white font-bold rounded-lg shadow-2xs flex items-center justify-center gap-1.5 text-[11px] cursor-pointer transition-all active:scale-98"
+                    className="w-full mt-1.5 py-1.5 px-3 bg-[#025ecc] hover:bg-[#024ebd] text-white font-bold rounded-lg shadow-2xs flex items-center justify-center gap-1.5 text-[11px] cursor-pointer transition-all active:scale-98"
                   >
                     <ExternalLink className="w-3 h-3" />
                     <span>View Complete Profile</span>
@@ -2125,8 +2221,8 @@ export default function App() {
                 </div>
 
                 {currentStep > 0 && (
-                  <div className="flex items-center gap-2 border border-orange-200 bg-orange-50/80 px-3 py-1.5 rounded-lg shrink-0 w-fit">
-                    <span className="text-xs text-orange-800 font-semibold">
+                  <div className="flex items-center gap-2 border border-blue-200 bg-blue-50/80 px-3 py-1.5 rounded-lg shrink-0 w-fit">
+                    <span className="text-xs text-blue-800 font-semibold">
                       Step {currentStep} of 6:
                     </span>
                     <span className="text-xs font-bold text-[#0e243a]">
@@ -2174,7 +2270,7 @@ export default function App() {
                               isCompleted
                                 ? 'bg-[#1a334e] text-white scale-100'
                                 : isCurrent
-                                ? 'bg-[#e45809] text-white scale-110 shadow-md ring-4 ring-orange-100/80 animate-pulse'
+                                ? 'bg-[#025ecc] text-white scale-110 shadow-md ring-4 ring-blue-100/80 animate-pulse'
                                 : 'bg-[#e5e9f0] text-slate-600 group-hover:bg-slate-200 group-hover:scale-105'
                             }`}
                           >
@@ -2187,7 +2283,7 @@ export default function App() {
                           <span
                             className={`mt-2 text-xs text-center whitespace-nowrap transition-colors duration-200 ${
                               isCurrent
-                                ? 'text-[#e45809] font-bold'
+                                ? 'text-[#025ecc] font-bold'
                                 : isCompleted
                                 ? 'text-slate-700 font-semibold'
                                 : 'text-slate-500 font-medium'
@@ -2205,7 +2301,7 @@ export default function App() {
                             {/* Animated Glowing Fill Track */}
                             <div
                               className={`absolute top-4 left-0 h-[2.5px] rounded-full transition-all duration-700 ease-in-out ${
-                                isNextCompleted ? 'animate-progress-glow shadow-[0_0_8px_rgba(228,88,9,0.5)]' : 'bg-[#e45809]'
+                                isNextCompleted ? 'animate-progress-glow shadow-[0_0_8px_rgba(228,88,9,0.5)]' : 'bg-[#025ecc]'
                               }`}
                               style={{
                                 width: isNextCompleted ? '100%' : '0%'
@@ -2248,17 +2344,17 @@ export default function App() {
               {/* CONDITIONAL CARDS (STEP 0 - 6) */}
               {currentStep === 0 && (
                 /* Let's get started Card */
-                <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-10 shadow-sm relative overflow-hidden transition-all duration-300">
-                  {/* Subtle top decorative accent gradient */}
-                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#e45809] via-amber-500 to-[#1a334e]" />
+                <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-10 shadow-sm relative transition-all duration-300">
+                  {/* Subtle top decorative accent gradient - pure blue/slate */}
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#025ecc] via-blue-500 to-[#1a334e] rounded-t-2xl" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center pt-2">
                     <div className="md:col-span-5 flex justify-center items-center relative">
-                      <div className="relative w-64 h-60 flex items-center justify-center">
+                      <div className="relative w-64 h-64 flex items-center justify-center p-2">
                         {/* Ambient glow circle behind avatar */}
-                        <div className="absolute w-48 h-48 rounded-full bg-orange-200/40 blur-2xl pointer-events-none" />
+                        <div className="absolute w-52 h-52 rounded-full bg-blue-200/40 blur-2xl pointer-events-none" />
 
-                        <div className="w-48 h-48 rounded-full bg-gradient-to-b from-orange-50 to-amber-100/70 border-4 border-white shadow-xl flex items-center justify-center relative group">
+                        <div className="w-52 h-52 rounded-full bg-gradient-to-b from-blue-50 to-blue-100/70 border-4 border-white shadow-xl flex items-center justify-center relative group">
                           {avatarPreview ? (
                             <img
                               src={avatarPreview}
@@ -2266,8 +2362,8 @@ export default function App() {
                               className="w-full h-full rounded-full object-cover"
                             />
                           ) : (
-                            <div className="flex flex-col items-center justify-center text-orange-400 group-hover:scale-105 transition-transform duration-200">
-                              <svg className="w-24 h-24 text-orange-400/80" viewBox="0 0 24 24" fill="currentColor">
+                            <div className="flex flex-col items-center justify-center text-blue-400 group-hover:scale-105 transition-transform duration-200">
+                              <svg className="w-24 h-24 text-blue-400/80" viewBox="0 0 24 24" fill="currentColor">
                                 <circle cx="12" cy="7" r="4.2" />
                                 <path d="M4 20.5a8 8 0 0 1 16 0H4z" />
                               </svg>
@@ -2293,7 +2389,7 @@ export default function App() {
                           <label
                             htmlFor="avatar-file-input"
                             title="Click to upload profile photo"
-                            className="absolute bottom-1 right-1 w-11 h-11 rounded-full bg-gradient-to-br from-[#e45809] to-[#c24102] hover:from-[#cf4d05] hover:to-[#a93801] active:scale-95 border-3 border-white text-white flex items-center justify-center shadow-lg cursor-pointer transition-all duration-200 z-10 group-hover:shadow-orange-500/30"
+                            className="absolute bottom-1 right-1 w-11 h-11 rounded-full bg-[#025ecc] hover:bg-[#024ebd] active:scale-95 border-3 border-white text-white flex items-center justify-center shadow-lg cursor-pointer transition-all duration-200 z-10 hover:shadow-blue-600/30"
                           >
                             {avatarUploading ? (
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -2306,7 +2402,7 @@ export default function App() {
                     </div>
 
                     <div className="md:col-span-7 flex flex-col justify-center">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200/70 text-[#e45809] text-[11px] font-bold uppercase tracking-wider mb-3 w-fit">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/70 text-[#025ecc] text-[11px] font-bold uppercase tracking-wider mb-3 w-fit">
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>Quick Onboarding</span>
                       </div>
@@ -2321,9 +2417,9 @@ export default function App() {
                         {guideItems.map((item) => (
                           <div
                             key={item.number}
-                            className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/80 hover:bg-orange-50/50 border border-slate-100 transition-colors"
+                            className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50/80 hover:bg-blue-50/50 border border-slate-100 transition-colors"
                           >
-                            <div className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-[#e45809] text-xs font-bold flex items-center justify-center shrink-0 shadow-2xs">
+                            <div className="w-6 h-6 rounded-lg bg-white border border-slate-200 text-[#025ecc] text-xs font-bold flex items-center justify-center shrink-0 shadow-2xs">
                               {item.number}
                             </div>
                             <span className="text-xs text-slate-700 font-semibold truncate">
@@ -2340,11 +2436,11 @@ export default function App() {
               {currentStep === 1 && (
                 /* Step 1: Basic Details */
                 <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-hidden transition-all duration-300">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#025ecc] to-amber-500" />
                   
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-200/60 text-[#e45809] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#025ecc] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
                         <Users className="w-3 h-3" />
                         <span>Step 1 of 5</span>
                       </div>
@@ -2354,6 +2450,84 @@ export default function App() {
                       <p className="text-slate-500 text-xs mt-0.5">
                         Enter the employee's personal and contact credentials.
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Profile Avatar / Icon Option */}
+                  <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-50/70 via-slate-50 to-blue-50/40 border border-blue-100 flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-4">
+                      <div className="relative group">
+                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
+                          {avatarPreview ? (
+                            <img
+                              src={avatarPreview}
+                              alt="Profile avatar preview"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-blue-100 text-[#025ecc] flex items-center justify-center font-bold text-lg">
+                              {(basicDetails.firstName?.[0] || 'U') + (basicDetails.lastName?.[0] || '')}
+                            </div>
+                          )}
+                        </div>
+                        <label
+                          htmlFor="step1-avatar-file-input"
+                          title="Change profile picture"
+                          className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#025ecc] hover:bg-[#024ebd] text-white flex items-center justify-center shadow-md cursor-pointer border-2 border-white transition-all active:scale-95"
+                        >
+                          <Camera className="w-3 h-3" />
+                        </label>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-slate-800">Profile Icon / Photo</h4>
+                          {editingEmployee && (
+                            <span className="text-[10px] font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
+                              Editing {editingEmployee.id}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          {avatarPreview ? 'Custom avatar selected. Click change to replace photo.' : 'Upload a profile photo (JPG, PNG, WebP up to 5MB).'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        id="step1-avatar-file-input"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setAvatarFile(file);
+                            const url = URL.createObjectURL(file);
+                            setAvatarPreview(url);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor="step1-avatar-file-input"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-blue-200 text-[#025ecc] hover:bg-blue-50 text-xs font-bold cursor-pointer transition-all shadow-2xs active:scale-95"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>{avatarPreview ? 'Change Photo' : 'Upload Photo'}</span>
+                      </label>
+                      {avatarPreview && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAvatarPreview(null);
+                            setAvatarFile(null);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all"
+                        >
+                          Remove
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -2371,7 +2545,7 @@ export default function App() {
                           placeholder="e.g. Rahul"
                           value={basicDetails.firstName}
                           onChange={(e) => handleBasicChange('firstName', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2389,7 +2563,7 @@ export default function App() {
                           placeholder="e.g. Sharma"
                           value={basicDetails.lastName}
                           onChange={(e) => handleBasicChange('lastName', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2408,7 +2582,7 @@ export default function App() {
                           max={new Date().toISOString().split('T')[0]}
                           value={basicDetails.dateOfBirth}
                           onChange={(e) => handleBasicChange('dateOfBirth', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs cursor-pointer"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs cursor-pointer"
                         />
                       </div>
                     </div>
@@ -2443,7 +2617,7 @@ export default function App() {
                           placeholder="e.g. rahul.sharma@fugosoft.com"
                           value={basicDetails.emailAddress}
                           onChange={(e) => handleBasicChange('emailAddress', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2461,7 +2635,7 @@ export default function App() {
                           placeholder="e.g. +91 98765 43210"
                           value={basicDetails.phoneNumber}
                           onChange={(e) => handleBasicChange('phoneNumber', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2472,11 +2646,11 @@ export default function App() {
               {currentStep === 2 && (
                 /* Step 2: Job Details */
                 <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-visible transition-all duration-300 pb-44 mb-6">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500 rounded-t-2xl" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#025ecc] to-amber-500 rounded-t-2xl" />
 
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-200/60 text-[#e45809] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#025ecc] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
                         <Briefcase className="w-3 h-3" />
                         <span>Step 2 of 5</span>
                       </div>
@@ -2503,7 +2677,7 @@ export default function App() {
                           placeholder="e.g. EMP002"
                           value={jobDetails.employeeId}
                           onChange={(e) => handleJobChange('employeeId', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2579,7 +2753,7 @@ export default function App() {
                           id="joining-date-input"
                           value={jobDetails.joiningDate}
                           onChange={(e) => handleJobChange('joiningDate', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs cursor-pointer"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs cursor-pointer"
                         />
                       </div>
                     </div>
@@ -2637,11 +2811,11 @@ export default function App() {
               {currentStep === 3 && (
                 /* Step 3: Salary Details */
                 <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-hidden transition-all duration-300">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#025ecc] to-amber-500" />
 
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-200/60 text-[#e45809] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#025ecc] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
                         <IndianRupee className="w-3 h-3" />
                         <span>Step 3 of 5</span>
                       </div>
@@ -2658,7 +2832,7 @@ export default function App() {
                     <div className="lg:col-span-7 space-y-6">
                       <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
                         <div className="flex items-center gap-2 mb-4">
-                          <div className="w-7 h-7 rounded-lg bg-orange-100/80 text-[#e45809] flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-lg bg-blue-100/80 text-[#025ecc] flex items-center justify-center">
                             <IndianRupee className="w-4 h-4" />
                           </div>
                           <span className="text-xs font-bold text-[#0c233c] uppercase tracking-wider">Salary Details</span>
@@ -2678,7 +2852,7 @@ export default function App() {
                                 placeholder="e.g. 50000"
                                 value={salaryDetails.monthlySalary}
                                 onChange={(e) => handleSalaryChange('monthlySalary', e.target.value)}
-                                className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                                className="w-full pl-8 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                               />
                             </div>
                           </div>
@@ -2721,7 +2895,7 @@ export default function App() {
                                   value="Yes"
                                   checked={salaryDetails.pfEligibility === 'Yes'}
                                   onChange={() => handleSalaryChange('pfEligibility', 'Yes')}
-                                  className="w-4 h-4 accent-[#e45809] cursor-pointer"
+                                  className="w-4 h-4 accent-[#025ecc] cursor-pointer"
                                 />
                                 <span>Yes</span>
                               </label>
@@ -2732,7 +2906,7 @@ export default function App() {
                                   value="No"
                                   checked={salaryDetails.pfEligibility === 'No'}
                                   onChange={() => handleSalaryChange('pfEligibility', 'No')}
-                                  className="w-4 h-4 accent-[#e45809] cursor-pointer"
+                                  className="w-4 h-4 accent-[#025ecc] cursor-pointer"
                                 />
                                 <span>No</span>
                               </label>
@@ -2748,7 +2922,7 @@ export default function App() {
                               placeholder="e.g. 101234567890"
                               value={salaryDetails.uanNumber}
                               onChange={(e) => handleSalaryChange('uanNumber', e.target.value)}
-                              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                             />
                           </div>
 
@@ -2764,7 +2938,7 @@ export default function App() {
                                   value="Yes"
                                   checked={salaryDetails.esiEligibility === 'Yes'}
                                   onChange={() => handleSalaryChange('esiEligibility', 'Yes')}
-                                  className="w-4 h-4 accent-[#e45809] cursor-pointer"
+                                  className="w-4 h-4 accent-[#025ecc] cursor-pointer"
                                 />
                                 <span>Yes</span>
                               </label>
@@ -2775,7 +2949,7 @@ export default function App() {
                                   value="No"
                                   checked={salaryDetails.esiEligibility === 'No'}
                                   onChange={() => handleSalaryChange('esiEligibility', 'No')}
-                                  className="w-4 h-4 accent-[#e45809] cursor-pointer"
+                                  className="w-4 h-4 accent-[#025ecc] cursor-pointer"
                                 />
                                 <span>No</span>
                               </label>
@@ -2791,16 +2965,16 @@ export default function App() {
                               placeholder="e.g. 3100012345678"
                               value={salaryDetails.esiNumber}
                               onChange={(e) => handleSalaryChange('esiNumber', e.target.value)}
-                              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                             />
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="lg:col-span-5 bg-gradient-to-br from-orange-50/80 via-amber-50/50 to-white border border-orange-200/70 rounded-2xl p-6 shadow-sm">
+                    <div className="lg:col-span-5 bg-gradient-to-br from-blue-50/80 via-amber-50/50 to-white border border-blue-200/70 rounded-2xl p-6 shadow-sm">
                       <div>
-                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-100 text-[#e45809] text-[10.5px] font-bold uppercase tracking-wider mb-1">
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-100 text-[#025ecc] text-[10.5px] font-bold uppercase tracking-wider mb-1">
                           Breakup Preview
                         </div>
                         <h3 className="text-sm font-extrabold text-[#0c233c] tracking-tight">
@@ -2825,7 +2999,7 @@ export default function App() {
                               placeholder="0"
                               value={salaryDetails.basicSalary}
                               onChange={(e) => handleSalaryChange('basicSalary', e.target.value)}
-                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] transition-all shadow-2xs"
+                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] transition-all shadow-2xs"
                             />
                           </div>
                         </div>
@@ -2843,7 +3017,7 @@ export default function App() {
                               placeholder="0"
                               value={salaryDetails.hra}
                               onChange={(e) => handleSalaryChange('hra', e.target.value)}
-                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] transition-all shadow-2xs"
+                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] transition-all shadow-2xs"
                             />
                           </div>
                         </div>
@@ -2861,7 +3035,7 @@ export default function App() {
                               placeholder="0"
                               value={salaryDetails.specialAllowance}
                               onChange={(e) => handleSalaryChange('specialAllowance', e.target.value)}
-                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] transition-all shadow-2xs"
+                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] transition-all shadow-2xs"
                             />
                           </div>
                         </div>
@@ -2879,7 +3053,7 @@ export default function App() {
                               placeholder="0"
                               value={salaryDetails.otherAllowances}
                               onChange={(e) => handleSalaryChange('otherAllowances', e.target.value)}
-                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] transition-all shadow-2xs"
+                              className="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] transition-all shadow-2xs"
                             />
                           </div>
                         </div>
@@ -2897,11 +3071,11 @@ export default function App() {
               {currentStep === 4 && (
                 /* Step 4: Bank Details */
                 <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-hidden transition-all duration-300">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#025ecc] to-amber-500" />
 
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-200/60 text-[#e45809] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#025ecc] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
                         <CreditCard className="w-3 h-3" />
                         <span>Step 4 of 5</span>
                       </div>
@@ -2928,7 +3102,7 @@ export default function App() {
                           placeholder="e.g. Rahul Sharma"
                           value={bankDetails.accountHolderName}
                           onChange={(e) => handleBankChange('accountHolderName', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2946,7 +3120,7 @@ export default function App() {
                           placeholder="e.g. 50100234567890"
                           value={bankDetails.bankAccountNumber}
                           onChange={(e) => handleBankChange('bankAccountNumber', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2964,7 +3138,7 @@ export default function App() {
                           placeholder="Re-enter account number"
                           value={bankDetails.confirmAccountNumber}
                           onChange={(e) => handleBankChange('confirmAccountNumber', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -2982,7 +3156,7 @@ export default function App() {
                           placeholder="e.g. HDFC0001234"
                           value={bankDetails.ifscCode}
                           onChange={(e) => handleBankChange('ifscCode', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium uppercase focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium uppercase focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -3000,7 +3174,7 @@ export default function App() {
                           placeholder="e.g. HDFC Bank"
                           value={bankDetails.bankName}
                           onChange={(e) => handleBankChange('bankName', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -3018,7 +3192,7 @@ export default function App() {
                           placeholder="e.g. Indiranagar Branch"
                           value={bankDetails.branchName}
                           onChange={(e) => handleBankChange('branchName', e.target.value)}
-                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#e45809] focus:ring-3 focus:ring-orange-500/15 transition-all shadow-2xs"
+                          className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs placeholder:text-slate-400 text-slate-800 font-medium focus:outline-none focus:border-[#025ecc] focus:ring-3 focus:ring-blue-600/15 transition-all shadow-2xs"
                         />
                       </div>
                     </div>
@@ -3029,11 +3203,11 @@ export default function App() {
               {currentStep === 5 && (
                 /* Step 5: Documents Upload */
                 <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-hidden transition-all duration-300">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#025ecc] to-amber-500" />
 
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-50 border border-orange-200/60 text-[#e45809] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#025ecc] text-[10.5px] font-bold uppercase tracking-wider mb-1.5">
                         <FileText className="w-3 h-3" />
                         <span>Step 5 of 5</span>
                       </div>
@@ -3050,7 +3224,7 @@ export default function App() {
                     {/* Aadhaar Card */}
                     <div className="border border-slate-200/90 bg-slate-50/50 hover:bg-white rounded-2xl p-5 shadow-2xs transition-all duration-200">
                       <div className="flex items-start gap-3 mb-3.5">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-2xs ${documents.aadhaar ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-[#e45809]'}`}>
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-2xs ${documents.aadhaar ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-[#025ecc]'}`}>
                           {documents.aadhaar ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <FileText className="w-3.5 h-3.5" />}
                         </div>
                         <div>
@@ -3063,7 +3237,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <label className="border-2 border-dashed border-slate-200 hover:border-[#e45809]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-orange-50/30 transition-all cursor-pointer group">
+                      <label className="border-2 border-dashed border-slate-200 hover:border-[#025ecc]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-blue-50/30 transition-all cursor-pointer group">
                         <input
                           type="file"
                           className="hidden"
@@ -3071,10 +3245,10 @@ export default function App() {
                           onChange={(e) => handleFileUpload('aadhaar', e.target.files?.[0] || null)}
                         />
                         <div className="flex flex-col items-center text-center">
-                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-orange-100 text-slate-500 group-hover:text-[#e45809] flex items-center justify-center transition-colors mb-2">
+                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-blue-100 text-slate-500 group-hover:text-[#025ecc] flex items-center justify-center transition-colors mb-2">
                             <Upload className="w-4 h-4 stroke-[2]" />
                           </div>
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#e45809] transition-colors truncate max-w-[220px]">
+                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#025ecc] transition-colors truncate max-w-[220px]">
                             {documents.aadhaar ? documents.aadhaar.name : 'Click to upload or drag & drop'}
                           </span>
                           <span className="text-[10.5px] text-slate-400 mt-0.5">
@@ -3087,7 +3261,7 @@ export default function App() {
                     {/* PAN Card */}
                     <div className="border border-slate-200/90 bg-slate-50/50 hover:bg-white rounded-2xl p-5 shadow-2xs transition-all duration-200">
                       <div className="flex items-start gap-3 mb-3.5">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-2xs ${documents.pan ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-[#e45809]'}`}>
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-2xs ${documents.pan ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-[#025ecc]'}`}>
                           {documents.pan ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : <FileText className="w-3.5 h-3.5" />}
                         </div>
                         <div>
@@ -3100,7 +3274,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <label className="border-2 border-dashed border-slate-200 hover:border-[#e45809]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-orange-50/30 transition-all cursor-pointer group">
+                      <label className="border-2 border-dashed border-slate-200 hover:border-[#025ecc]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-blue-50/30 transition-all cursor-pointer group">
                         <input
                           type="file"
                           className="hidden"
@@ -3108,10 +3282,10 @@ export default function App() {
                           onChange={(e) => handleFileUpload('pan', e.target.files?.[0] || null)}
                         />
                         <div className="flex flex-col items-center text-center">
-                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-orange-100 text-slate-500 group-hover:text-[#e45809] flex items-center justify-center transition-colors mb-2">
+                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-blue-100 text-slate-500 group-hover:text-[#025ecc] flex items-center justify-center transition-colors mb-2">
                             <Upload className="w-4 h-4 stroke-[2]" />
                           </div>
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#e45809] transition-colors truncate max-w-[220px]">
+                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#025ecc] transition-colors truncate max-w-[220px]">
                             {documents.pan ? documents.pan.name : 'Click to upload or drag & drop'}
                           </span>
                           <span className="text-[10.5px] text-slate-400 mt-0.5">
@@ -3142,7 +3316,7 @@ export default function App() {
                         </span>
                       </div>
 
-                      <label className="border-2 border-dashed border-slate-200 hover:border-[#e45809]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-orange-50/30 transition-all cursor-pointer group">
+                      <label className="border-2 border-dashed border-slate-200 hover:border-[#025ecc]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-blue-50/30 transition-all cursor-pointer group">
                         <input
                           type="file"
                           className="hidden"
@@ -3150,10 +3324,10 @@ export default function App() {
                           onChange={(e) => handleFileUpload('experience', e.target.files?.[0] || null)}
                         />
                         <div className="flex flex-col items-center text-center">
-                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-orange-100 text-slate-500 group-hover:text-[#e45809] flex items-center justify-center transition-colors mb-2">
+                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-blue-100 text-slate-500 group-hover:text-[#025ecc] flex items-center justify-center transition-colors mb-2">
                             <Upload className="w-4 h-4 stroke-[2]" />
                           </div>
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#e45809] transition-colors truncate max-w-[220px]">
+                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#025ecc] transition-colors truncate max-w-[220px]">
                             {documents.experience ? documents.experience.name : 'Click to upload or drag & drop'}
                           </span>
                           <span className="text-[10.5px] text-slate-400 mt-0.5">
@@ -3184,7 +3358,7 @@ export default function App() {
                         </span>
                       </div>
 
-                      <label className="border-2 border-dashed border-slate-200 hover:border-[#e45809]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-orange-50/30 transition-all cursor-pointer group">
+                      <label className="border-2 border-dashed border-slate-200 hover:border-[#025ecc]/50 rounded-xl p-5 flex flex-col items-center justify-center bg-white hover:bg-blue-50/30 transition-all cursor-pointer group">
                         <input
                           type="file"
                           className="hidden"
@@ -3192,10 +3366,10 @@ export default function App() {
                           onChange={(e) => handleFileUpload('education', e.target.files?.[0] || null)}
                         />
                         <div className="flex flex-col items-center text-center">
-                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-orange-100 text-slate-500 group-hover:text-[#e45809] flex items-center justify-center transition-colors mb-2">
+                          <div className="w-9 h-9 rounded-full bg-slate-50 group-hover:bg-blue-100 text-slate-500 group-hover:text-[#025ecc] flex items-center justify-center transition-colors mb-2">
                             <Upload className="w-4 h-4 stroke-[2]" />
                           </div>
-                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#e45809] transition-colors truncate max-w-[220px]">
+                          <span className="text-xs font-bold text-slate-800 group-hover:text-[#025ecc] transition-colors truncate max-w-[220px]">
                             {documents.education ? documents.education.name : 'Click to upload or drag & drop'}
                           </span>
                           <span className="text-[10.5px] text-slate-400 mt-0.5">
@@ -3211,7 +3385,7 @@ export default function App() {
               {currentStep === 6 && (
                 /* Step 6: Review & Submit */
                 <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-8 sm:p-9 shadow-sm relative overflow-hidden transition-all duration-300">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#e45809] to-amber-500" />
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#025ecc] to-amber-500" />
 
                   <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                     <div>
@@ -3231,11 +3405,93 @@ export default function App() {
                     {!isViewMode && (
                       <button
                         onClick={() => setCurrentStep(1)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-[#e45809] rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-slate-700 hover:text-[#025ecc] rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         <span>Edit All</span>
                       </button>
+                    )}
+                  </div>
+
+                  {/* Prominent Profile Avatar & Details Header */}
+                  <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-blue-50/80 via-slate-50 to-blue-50/40 border border-blue-200/80 shadow-2xs flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-4">
+                      <div className="relative group">
+                        <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center">
+                          {avatarPreview ? (
+                            <img
+                              src={avatarPreview}
+                              alt="Employee avatar"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-blue-100 text-[#025ecc] flex items-center justify-center font-black text-xl">
+                              {(basicDetails.firstName?.[0] || 'E') + (basicDetails.lastName?.[0] || '')}
+                            </div>
+                          )}
+                        </div>
+                        {!isViewMode && (
+                          <label
+                            htmlFor="step6-avatar-file-input"
+                            title="Click to change profile icon"
+                            className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#025ecc] hover:bg-[#024ebd] text-white flex items-center justify-center shadow-md cursor-pointer border-2 border-white transition-all active:scale-95"
+                          >
+                            <Camera className="w-3 h-3" />
+                          </label>
+                        )}
+                      </div>
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-extrabold text-[#0e243a]">
+                            {basicDetails.firstName} {basicDetails.lastName || ''}
+                          </h3>
+                          <span className="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                            {jobDetails.employeeId || 'New'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 font-medium">
+                          {jobDetails.designation || 'Designation'} • {jobDetails.department || 'Department'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {!isViewMode && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          id="step6-avatar-file-input"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              setAvatarFile(file);
+                              const url = URL.createObjectURL(file);
+                              setAvatarPreview(url);
+                            }
+                          }}
+                        />
+                        <label
+                          htmlFor="step6-avatar-file-input"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-blue-200 text-[#025ecc] hover:bg-blue-50 text-xs font-bold cursor-pointer transition-all shadow-2xs active:scale-95"
+                        >
+                          <Camera className="w-3.5 h-3.5" />
+                          <span>Change Profile Icon</span>
+                        </label>
+                        {avatarPreview && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAvatarPreview(null);
+                              setAvatarFile(null);
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-all"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -3253,7 +3509,7 @@ export default function App() {
                           {!isViewMode && (
                             <button
                               onClick={() => setCurrentStep(1)}
-                              className="text-[11px] font-bold text-[#e45809] hover:underline cursor-pointer"
+                              className="text-[11px] font-bold text-[#025ecc] hover:underline cursor-pointer"
                             >
                               Edit
                             </button>
@@ -3298,7 +3554,7 @@ export default function App() {
                           {!isViewMode && (
                             <button
                               onClick={() => setCurrentStep(2)}
-                              className="text-[11px] font-bold text-[#e45809] hover:underline cursor-pointer"
+                              className="text-[11px] font-bold text-[#025ecc] hover:underline cursor-pointer"
                             >
                               Edit
                             </button>
@@ -3347,7 +3603,7 @@ export default function App() {
                           {!isViewMode && (
                             <button
                               onClick={() => setCurrentStep(3)}
-                              className="text-[11px] font-bold text-[#e45809] hover:underline cursor-pointer"
+                              className="text-[11px] font-bold text-[#025ecc] hover:underline cursor-pointer"
                             >
                               Edit
                             </button>
@@ -3393,7 +3649,7 @@ export default function App() {
                         {!isViewMode && (
                           <button
                             onClick={() => setCurrentStep(4)}
-                            className="text-[11px] font-bold text-[#e45809] hover:underline cursor-pointer"
+                            className="text-[11px] font-bold text-[#025ecc] hover:underline cursor-pointer"
                           >
                             Edit
                           </button>
@@ -3428,7 +3684,7 @@ export default function App() {
                     <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 shadow-2xs hover:border-slate-300 transition-colors">
                       <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 mb-3.5">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-md bg-orange-100 text-[#e45809] flex items-center justify-center">
+                          <div className="w-6 h-6 rounded-md bg-blue-100 text-[#025ecc] flex items-center justify-center">
                             <FileText className="w-3.5 h-3.5" />
                           </div>
                           <span className="text-xs font-bold text-[#0c233c]">Attached Documents</span>
@@ -3436,7 +3692,7 @@ export default function App() {
                         {!isViewMode && (
                           <button
                             onClick={() => setCurrentStep(5)}
-                            className="text-[11px] font-bold text-[#e45809] hover:underline cursor-pointer"
+                            className="text-[11px] font-bold text-[#025ecc] hover:underline cursor-pointer"
                           >
                             Edit
                           </button>
@@ -3513,7 +3769,7 @@ export default function App() {
                                         e.stopPropagation();
                                         openDocInNewTab(item.fileObj, item.fileUrl);
                                       }}
-                                      className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#e45809] bg-orange-50 hover:bg-orange-100 hover:text-[#cf4d05] px-3 py-1 rounded-lg border border-orange-200/80 shrink-0 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                                      className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#025ecc] bg-blue-50 hover:bg-blue-100 hover:text-[#024ebd] px-3 py-1 rounded-lg border border-blue-200/80 shrink-0 shadow-2xs transition-all active:scale-95 cursor-pointer"
                                       title={`View ${item.label} in new browser tab`}
                                     >
                                       <span>View</span>
@@ -3541,7 +3797,7 @@ export default function App() {
               {currentStep === 0 && (
                 <button
                   onClick={() => setCurrentStep(1)}
-                  className="group flex items-center gap-2.5 bg-gradient-to-r from-[#e45809] to-[#c24102] hover:from-[#f26522] hover:to-[#d84d03] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-orange-500/25 active:scale-95 cursor-pointer"
+                  className="group flex items-center gap-2.5 bg-[#025ecc] hover:bg-[#024ebd] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-blue-600/25 active:scale-95 cursor-pointer"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -3567,7 +3823,7 @@ export default function App() {
                         setCurrentStep(2);
                       }
                     }}
-                    className="group flex items-center gap-2 bg-gradient-to-r from-[#e45809] to-[#c24102] hover:from-[#f26522] hover:to-[#d84d03] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-orange-500/25 active:scale-95 cursor-pointer"
+                    className="group flex items-center gap-2 bg-[#025ecc] hover:bg-[#024ebd] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-blue-600/25 active:scale-95 cursor-pointer"
                   >
                     <span>Next</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -3595,7 +3851,7 @@ export default function App() {
                         setCurrentStep(3);
                       }
                     }}
-                    className="group flex items-center gap-2 bg-gradient-to-r from-[#e45809] to-[#c24102] hover:from-[#f26522] hover:to-[#d84d03] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-orange-500/25 active:scale-95 cursor-pointer"
+                    className="group flex items-center gap-2 bg-[#025ecc] hover:bg-[#024ebd] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-blue-600/25 active:scale-95 cursor-pointer"
                   >
                     <span>Next</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -3623,7 +3879,7 @@ export default function App() {
                         setCurrentStep(4);
                       }
                     }}
-                    className="group flex items-center gap-2 bg-gradient-to-r from-[#e45809] to-[#c24102] hover:from-[#f26522] hover:to-[#d84d03] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-orange-500/25 active:scale-95 cursor-pointer"
+                    className="group flex items-center gap-2 bg-[#025ecc] hover:bg-[#024ebd] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-blue-600/25 active:scale-95 cursor-pointer"
                   >
                     <span>Next</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -3651,7 +3907,7 @@ export default function App() {
                         setCurrentStep(5);
                       }
                     }}
-                    className="group flex items-center gap-2 bg-gradient-to-r from-[#e45809] to-[#c24102] hover:from-[#f26522] hover:to-[#d84d03] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-orange-500/25 active:scale-95 cursor-pointer"
+                    className="group flex items-center gap-2 bg-[#025ecc] hover:bg-[#024ebd] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-blue-600/25 active:scale-95 cursor-pointer"
                   >
                     <span>Next</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -3679,7 +3935,7 @@ export default function App() {
                         setCurrentStep(6);
                       }
                     }}
-                    className="group flex items-center gap-2 bg-gradient-to-r from-[#e45809] to-[#c24102] hover:from-[#f26522] hover:to-[#d84d03] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-orange-500/25 active:scale-95 cursor-pointer"
+                    className="group flex items-center gap-2 bg-[#025ecc] hover:bg-[#024ebd] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-blue-600/25 active:scale-95 cursor-pointer"
                   >
                     <span>Review & Confirm</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -3697,7 +3953,7 @@ export default function App() {
                         setCurrentStep(0);
                         setIsViewMode(false);
                       }}
-                      className="px-6 py-2.5 bg-[#e45809] hover:bg-[#cf4d05] text-white rounded-lg text-xs font-bold transition-all shadow-sm active:scale-98 cursor-pointer flex items-center gap-2 ml-auto"
+                      className="px-6 py-2.5 bg-[#025ecc] hover:bg-[#024ebd] text-white rounded-lg text-xs font-bold transition-all shadow-sm active:scale-98 cursor-pointer flex items-center gap-2 ml-auto"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       <span>Back to Employees</span>
@@ -3906,7 +4162,7 @@ export default function App() {
                             setIsSubmitting(false);
                           }
                         }}
-                        className={`group flex items-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-7 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-emerald-500/25 active:scale-95 cursor-pointer ${
+                        className={`group flex items-center gap-2 bg-[#025ecc] hover:bg-[#024ebd] text-white px-7 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-blue-600/25 active:scale-95 cursor-pointer ${
                           isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
                         }`}
                       >

@@ -56,19 +56,19 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
           isFilter
             ? `pl-3.5 pr-2.5 py-1.5 rounded-full text-xs font-semibold border ${
                 isOpen
-                  ? 'border-[#e45809] ring-2 ring-orange-500/20 bg-white shadow-sm text-[#0c233c]'
-                  : 'border-slate-300 hover:border-orange-400 bg-white text-slate-700 shadow-2xs hover:bg-slate-50/80'
+                  ? 'border-[#025ecc] ring-2 ring-blue-500/20 bg-white shadow-sm text-[#0c233c]'
+                  : 'border-slate-300 hover:border-blue-400 bg-white text-slate-700 shadow-2xs hover:bg-slate-50/80'
               }`
             : `pl-10 pr-3 py-2.5 rounded-xl text-xs font-medium border ${
                 isOpen
-                  ? 'border-[#e45809] ring-3 ring-orange-500/15 bg-white text-slate-800'
+                  ? 'border-[#025ecc] ring-3 ring-blue-500/15 bg-white text-slate-800'
                   : 'border-slate-200 bg-slate-50/50 hover:bg-white text-slate-800 shadow-2xs hover:border-slate-300'
               }`
         }`}
       >
         <div className="flex items-center gap-2 truncate">
           {Icon && (
-            <div className={`${isFilter ? 'text-[#e45809]' : 'text-slate-400'} shrink-0`}>
+            <div className={`${isFilter ? 'text-[#025ecc]' : 'text-slate-400'} shrink-0`}>
               <Icon className="w-4 h-4" />
             </div>
           )}
@@ -79,7 +79,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
         <div className="shrink-0 ml-1.5 text-slate-400">
           {isOpen ? (
-            <ChevronUp className="w-3.5 h-3.5 stroke-[2.5] text-[#e45809] transition-transform duration-200" />
+            <ChevronUp className="w-3.5 h-3.5 stroke-[2.5] text-[#025ecc] transition-transform duration-200" />
           ) : (
             <ChevronDown className="w-3.5 h-3.5 stroke-[2.2] text-slate-400 transition-transform duration-200" />
           )}
@@ -108,13 +108,13 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   }}
                   className={`w-full text-left px-3.5 py-2 text-xs transition-colors flex items-center justify-between cursor-pointer ${
                     isSelected
-                      ? 'bg-orange-50 text-[#e45809] font-bold'
+                      ? 'bg-blue-50 text-[#025ecc] font-bold'
                       : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                  } ${isFirst && isSelected ? 'bg-orange-50/90' : ''}`}
+                  } ${isFirst && isSelected ? 'bg-blue-50/90' : ''}`}
                 >
                   <span className="truncate">{option.label}</span>
                   {isSelected && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#e45809] shrink-0 ml-2" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#025ecc] shrink-0 ml-2" />
                   )}
                 </button>
               );

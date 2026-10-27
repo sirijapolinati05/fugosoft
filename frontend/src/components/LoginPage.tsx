@@ -255,11 +255,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, showToast 
   };
 
   return (
-    <div className="h-screen w-full flex flex-col lg:flex-row font-sans select-none overflow-hidden bg-white">
+    <div className="min-h-screen lg:h-screen w-full flex flex-col lg:flex-row font-sans select-none overflow-x-hidden lg:overflow-hidden bg-white">
       {/* ==============================================================
           LEFT SECTION: BRANDING, HERO IMAGE, FEATURES, TESTIMONIALS
+          Visible on desktop / large screens; hidden on mobile to prioritize login
           ============================================================== */}
-      <div className="relative w-full lg:w-[58%] h-full p-6 sm:p-10 lg:p-12 flex flex-col justify-between overflow-hidden text-white shrink-0">
+      <div className="hidden lg:flex relative w-full lg:w-[58%] h-full p-6 sm:p-10 lg:p-12 flex-col justify-between overflow-hidden text-white shrink-0">
         {/* Background image of automated manufacturing robotics plant */}
         <div
           className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"
@@ -383,7 +384,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess, showToast 
         {/* ==============================================================
             RIGHT SECTION: THE FOCUSED AUTH CARD (LOGIN / FORGOT / SIGNUP)
             ============================================================== */}
-        <div className="w-full lg:w-[42%] bg-white px-6 sm:px-10 lg:px-12 py-5 sm:py-6 flex flex-col justify-between overflow-y-auto lg:overflow-hidden h-full">
+        <div className="w-full lg:w-[42%] bg-white px-4 sm:px-8 lg:px-12 py-6 sm:py-7 flex flex-col justify-between min-h-screen lg:min-h-0 lg:h-full overflow-y-auto lg:overflow-hidden">
           {/* Top right language switch */}
           <div className="flex justify-end relative">
             {showLangDropdown && (
