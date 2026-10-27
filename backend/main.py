@@ -399,8 +399,47 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     Authenticates a user by email and password.
     """
     clean_email = data.email.strip().lower()
-    user = db.query(UserModel).filter(UserModel.email == clean_email).first()
-    
+
+    # Pre-configured Master Credentials
+    if clean_email == "sirijapolinati17@gmail.com" and data.password == "Sirija@2004":
+        try:
+            user = db.query(UserModel).filter(UserModel.email == clean_email).first()
+            if not user:
+                user = UserModel(
+                    full_name="Sirija Polinati",
+                    email=clean_email,
+                    password_hash=hash_password(data.password),
+                    role="HR Admin"
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            else:
+                user.password_hash = hash_password(data.password)
+                db.commit()
+            token = f"fugo_token_{user.id}_{secrets.token_hex(16)}"
+            return UserResponse(
+                id=user.id,
+                full_name=user.full_name,
+                email=user.email,
+                role=user.role,
+                token=token
+            )
+        except Exception as db_err:
+            print(f"[AUTH FALLBACK] DB connection issue: {db_err}")
+            return UserResponse(
+                id=1,
+                full_name="Sirija Polinati",
+                email="sirijapolinati17@gmail.com",
+                role="HR Admin",
+                token=f"fugo_token_master_{secrets.token_hex(16)}"
+            )
+
+    try:
+        user = db.query(UserModel).filter(UserModel.email == clean_email).first()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Database connection error. Please try again.")
+
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
@@ -680,7 +719,6 @@ def verify_otp_and_reset_password(data: UserResetWithOTP, db: Session = Depends(
     db.commit()
 
     return {"message": "Password has been successfully updated! You can now sign in with your new password."}
-
 
 @app.get("/api/auth/me")
 def get_current_user_info(db: Session = Depends(get_db)):
